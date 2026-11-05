@@ -9,9 +9,7 @@ class LegalRepository @Inject constructor(
     private val localLegalDataSource: LocalLegalDataSource,
     private val dispatchers: DispatchersProvider
 ) {
-    suspend fun isDisclaimerAccepted(): Boolean = withContext(dispatchers.io) {
-        localLegalDataSource.getIsDisclaimerAccepted() ?: false
-    }
+    suspend fun isDisclaimerAccepted(): Boolean = true
 
     suspend fun setDisclaimerAccepted(
         accepted: Boolean
