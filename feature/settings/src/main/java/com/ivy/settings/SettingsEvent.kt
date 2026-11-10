@@ -14,6 +14,9 @@ sealed interface SettingsEvent {
     data class SetAccent(val accent: ThemeAccent) : SettingsEvent
     data class SetLockApp(val lockApp: Boolean) : SettingsEvent
     data class SetShowNotifications(val showNotifications: Boolean) : SettingsEvent
+    data class SetReminderTime(val hour: Int, val minute: Int) : SettingsEvent
+    data object PickReminderTime : SettingsEvent
+    data object SendTestReminder : SettingsEvent
     data class SetHideCurrentBalance(val hideCurrentBalance: Boolean) : SettingsEvent
     data class SetHideIncome(val hideIncome: Boolean) : SettingsEvent
     data class SetTransfersAsIncomeExpense(val treatTransfersAsIncomeExpense: Boolean) :

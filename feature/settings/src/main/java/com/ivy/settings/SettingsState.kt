@@ -10,6 +10,8 @@ data class SettingsState(
     val currentAccent: ThemeAccent,
     val lockApp: Boolean,
     val showNotifications: Boolean,
+    val reminderHour: Int = 20,
+    val reminderMinute: Int = 0,
     val hideCurrentBalance: Boolean,
     val hideIncome: Boolean,
     val treatTransfersAsIncomeExpense: Boolean,

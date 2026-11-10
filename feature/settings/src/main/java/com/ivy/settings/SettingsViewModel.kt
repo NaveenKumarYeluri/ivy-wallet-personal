@@ -40,7 +40,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 import javax.inject.Inject
+import com.ivy.wallet.domain.deprecated.logic.notification.TransactionReminderLogic
 
 @Stable
 @SuppressLint("StaticFieldLeak")
@@ -58,6 +60,7 @@ class SettingsViewModel @Inject constructor(
     private val updateSettingsAct: UpdateSettingsAct,
     private val settingsWriter: WriteSettingsDao,
     private val exportCsvUseCase: ExportCsvUseCase,
+    private val transactionReminderLogic: TransactionReminderLogic,
     @ApplicationContext private val context: Context
 ) : ComposeViewModel<SettingsState, SettingsEvent>() {
 
@@ -67,6 +70,8 @@ class SettingsViewModel @Inject constructor(
     private val currentAccent = mutableStateOf<ThemeAccent>(ThemeAccent.GREEN)
     private val lockApp = mutableStateOf(false)
     private val showNotifications = mutableStateOf(true)
+    private val reminderHour = mutableIntStateOf(20)
+    private val reminderMinute = mutableIntStateOf(0)
     private val hideCurrentBalance = mutableStateOf(false)
     private val hideIncome = mutableStateOf(false)
     private val treatTransfersAsIncomeExpense = mutableStateOf(false)
@@ -86,6 +91,8 @@ class SettingsViewModel @Inject constructor(
             currentAccent = getCurrentAccent(),
             lockApp = getLockApp(),
             showNotifications = getShowNotifications(),
+            reminderHour = reminderHour.intValue,
+            reminderMinute = reminderMinute.intValue,
             hideCurrentBalance = getHideCurrentBalance(),
             treatTransfersAsIncomeExpense = getTreatTransfersAsIncomeExpense(),
             startDateOfMonth = getStartDateOfMonth(),
@@ -141,6 +148,8 @@ class SettingsViewModel @Inject constructor(
         showNotifications.value = sharedPrefs.getBoolean(
             SharedPrefs.SHOW_NOTIFICATIONS, true
         )
+        reminderHour.intValue = sharedPrefs.getInt(SharedPrefs.REMINDER_HOUR, 20)
+        reminderMinute.intValue = sharedPrefs.getInt(SharedPrefs.REMINDER_MINUTE, 0)
     }
 
     private fun initializeHideCurrentBalance() {
@@ -232,6 +241,9 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.SetAccent -> setAccent(event.accent)
             is SettingsEvent.SetLockApp -> setLockApp(event.lockApp)
             is SettingsEvent.SetShowNotifications -> setShowNotifications(event.showNotifications)
+            is SettingsEvent.SetReminderTime -> setReminderTime(event.hour, event.minute)
+            SettingsEvent.PickReminderTime -> pickReminderTime()
+            SettingsEvent.SendTestReminder -> sendTestReminder()
             is SettingsEvent.SetHideCurrentBalance -> setHideCurrentBalance(
                 event.hideCurrentBalance
             )
@@ -364,7 +376,45 @@ class SettingsViewModel @Inject constructor(
 
         viewModelScope.launch {
             sharedPrefs.putBoolean(SharedPrefs.SHOW_NOTIFICATIONS, notificationsShow)
+            if (notificationsShow) {
+                transactionReminderLogic.scheduleReminder(
+                    hour = reminderHour.intValue,
+                    minute = reminderMinute.intValue,
+                    replace = true
+                )
+            } else {
+                transactionReminderLogic.cancelReminder()
+            }
         }
+    }
+
+    private fun setReminderTime(hour: Int, minute: Int) {
+        reminderHour.intValue = hour
+        reminderMinute.intValue = minute
+
+        viewModelScope.launch {
+            sharedPrefs.putInt(SharedPrefs.REMINDER_HOUR, hour)
+            sharedPrefs.putInt(SharedPrefs.REMINDER_MINUTE, minute)
+            if (showNotifications.value) {
+                transactionReminderLogic.scheduleReminder(
+                    hour = hour,
+                    minute = minute,
+                    replace = true
+                )
+            }
+        }
+    }
+
+    private fun pickReminderTime() {
+        ivyContext.timePicker(
+            initialTime = LocalTime.of(reminderHour.intValue, reminderMinute.intValue)
+        ) { pickedTime ->
+            setReminderTime(pickedTime.hour, pickedTime.minute)
+        }
+    }
+
+    private fun sendTestReminder() {
+        transactionReminderLogic.sendTestNotification()
     }
 
     private fun setHideCurrentBalance(hideBalance: Boolean) {

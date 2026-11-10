@@ -1,5 +1,6 @@
 package com.ivy.settings
 
+import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +40,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ivy.base.legacy.Theme
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import com.ivy.base.legacy.ThemeAccent
@@ -94,6 +99,8 @@ fun BoxWithConstraintsScope.SettingsScreen() {
         },
         lockApp = uiState.lockApp,
         showNotifications = uiState.showNotifications,
+        reminderHour = uiState.reminderHour,
+        reminderMinute = uiState.reminderMinute,
         hideCurrentBalance = uiState.hideCurrentBalance,
         hideIncome = uiState.hideIncome,
         progressState = uiState.progressState,
@@ -118,6 +125,12 @@ fun BoxWithConstraintsScope.SettingsScreen() {
         },
         onSetShowNotifications = {
             viewModel.onEvent(SettingsEvent.SetShowNotifications(it))
+        },
+        onPickReminderTime = {
+            viewModel.onEvent(SettingsEvent.PickReminderTime)
+        },
+        onSendTestReminder = {
+            viewModel.onEvent(SettingsEvent.SendTestReminder)
         },
         onSetHideCurrentBalance = {
             viewModel.onEvent(SettingsEvent.SetHideCurrentBalance(it))
@@ -159,6 +172,8 @@ private fun BoxWithConstraintsScope.UI(
     onSetCurrency: (String) -> Unit,
     startDateOfMonth: Int = 1,
     showNotifications: Boolean = true,
+    reminderHour: Int = 20,
+    reminderMinute: Int = 0,
     hideCurrentBalance: Boolean = false,
     hideIncome: Boolean = false,
     progressState: Boolean = false,
@@ -168,6 +183,8 @@ private fun BoxWithConstraintsScope.UI(
     onExportToCSV: () -> Unit = {},
     onSetLockApp: (Boolean) -> Unit = {},
     onSetShowNotifications: (Boolean) -> Unit = {},
+    onPickReminderTime: () -> Unit = {},
+    onSendTestReminder: () -> Unit = {},
     onSetTreatTransfersAsIncExp: (Boolean) -> Unit = {},
     onSetHideCurrentBalance: (Boolean) -> Unit = {},
     onSetHideIncome: (Boolean) -> Unit = {},
@@ -348,6 +365,118 @@ private fun BoxWithConstraintsScope.UI(
                 text = stringResource(R.string.show_notifications),
                 icon = R.drawable.ic_notification_m
             )
+
+            if (showNotifications) {
+                Spacer(Modifier.height(8.dp))
+
+                val context = LocalContext.current
+                val formattedReminderTime = remember(reminderHour, reminderMinute) {
+                    val is24 = android.text.format.DateFormat.is24HourFormat(context)
+                    val time = LocalTime.of(reminderHour, reminderMinute)
+                    val pattern = if (is24) "HH:mm" else "hh:mm a"
+                    time.format(DateTimeFormatter.ofPattern(pattern, Locale.getDefault()))
+                }
+
+                SettingsButtonRow(
+                    onClick = onPickReminderTime
+                ) {
+                    Spacer(Modifier.width(12.dp))
+
+                    IvyIconScaled(
+                        icon = R.drawable.ic_clock,
+                        tint = UI.colors.primary,
+                        iconScale = IconScale.M,
+                        padding = 0.dp
+                    )
+
+                    Spacer(Modifier.width(8.dp))
+
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(top = 16.dp, bottom = 16.dp, end = 8.dp)
+                    ) {
+                        Text(
+                            text = "Daily Reminder Time",
+                            style = UI.typo.b2.style(
+                                color = UI.colors.pureInverse,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Text(
+                            text = "Remind to record daily spending",
+                            style = UI.typo.nB2.style(
+                                color = Gray,
+                                fontWeight = FontWeight.Normal
+                            ).copy(fontSize = 14.sp)
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .clip(UI.shapes.rFull)
+                            .background(UI.colors.primary.copy(alpha = 0.15f), UI.shapes.rFull)
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = formattedReminderTime,
+                            style = UI.typo.nB2.style(
+                                color = UI.colors.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+
+                    Spacer(Modifier.width(16.dp))
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                SettingsButtonRow(
+                    onClick = {
+                        onSendTestReminder()
+                        Toast.makeText(
+                            context,
+                            "Test reminder notification sent!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                ) {
+                    Spacer(Modifier.width(12.dp))
+
+                    IvyIconScaled(
+                        icon = R.drawable.ic_notification_m,
+                        tint = UI.colors.pureInverse,
+                        iconScale = IconScale.M,
+                        padding = 0.dp
+                    )
+
+                    Spacer(Modifier.width(8.dp))
+
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(top = 14.dp, bottom = 14.dp, end = 8.dp)
+                    ) {
+                        Text(
+                            text = "Test Reminder Notification",
+                            style = UI.typo.b2.style(
+                                color = UI.colors.pureInverse,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+
+                    IvyIconScaled(
+                        icon = R.drawable.ic_arrow_right,
+                        tint = UI.colors.gray,
+                        iconScale = IconScale.S,
+                        padding = 0.dp
+                    )
+
+                    Spacer(Modifier.width(16.dp))
+                }
+            }
 
             Spacer(Modifier.height(12.dp))
 
