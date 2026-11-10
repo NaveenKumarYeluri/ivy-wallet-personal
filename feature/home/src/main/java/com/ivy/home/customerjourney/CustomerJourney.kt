@@ -30,6 +30,7 @@ import com.ivy.navigation.IvyPreview
 import com.ivy.navigation.navigation
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Gradient
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.components.IvyButton
 import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.dynamicContrast
@@ -77,12 +78,18 @@ fun CustomerJourneyCard(
     modifier: Modifier = Modifier,
     onCTA: () -> Unit,
 ) {
+    val background = if (cardData.id == "adjust_balance") {
+        GradientPrimary
+    } else {
+        cardData.background
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .drawColoredShadow(cardData.background.startColor)
-            .background(cardData.background.asHorizontalBrush(), UI.shapes.r3)
+            .drawColoredShadow(background.startColor)
+            .background(background.asHorizontalBrush(), UI.shapes.r3)
             .clip(UI.shapes.r3)
             .clickable {
                 onCTA()
@@ -100,7 +107,7 @@ fun CustomerJourneyCard(
                 text = cardData.title,
                 style = UI.typo.b1.style(
                     fontWeight = FontWeight.ExtraBold,
-                    color = findContrastTextColor(cardData.background.startColor)
+                    color = findContrastTextColor(background.startColor)
                 )
             )
 
@@ -112,7 +119,7 @@ fun CustomerJourneyCard(
                         }
                         .padding(8.dp), // enlarge click area
                     icon = R.drawable.ic_dismiss,
-                    tint = cardData.background.startColor.dynamicContrast(),
+                    tint = background.startColor.dynamicContrast(),
                     contentDescription = "prompt_dismiss",
                 )
 
@@ -129,7 +136,7 @@ fun CustomerJourneyCard(
             text = cardData.description,
             style = UI.typo.b2.style(
                 fontWeight = FontWeight.Medium,
-                color = findContrastTextColor(cardData.background.startColor)
+                color = findContrastTextColor(background.startColor)
             )
         )
 
@@ -144,13 +151,13 @@ fun CustomerJourneyCard(
                 text = cardData.cta,
                 shadowAlpha = 0f,
                 iconStart = cardData.ctaIcon,
-                iconTint = cardData.background.startColor,
+                iconTint = background.startColor,
                 textStyle = UI.typo.b2.style(
-                    color = cardData.background.startColor,
+                    color = background.startColor,
                     fontWeight = FontWeight.Bold
                 ),
                 padding = 8.dp,
-                backgroundGradient = Gradient.solid(findContrastTextColor(cardData.background.startColor))
+                backgroundGradient = Gradient.solid(findContrastTextColor(background.startColor))
             ) {
                 onCTA()
             }

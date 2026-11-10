@@ -76,7 +76,7 @@ fun BoxWithConstraintsScope.CategoryModal(
         mutableStateOf(selectEndTextFieldValue(initialCategory?.name?.value))
     }
     var color by remember(modal) {
-        mutableStateOf(initialCategory?.color?.let { Color(it.value) } ?: Ivy)
+        mutableStateOf(initialCategory?.color?.let { Color(it.value) } ?: UI.colors.primary)
     }
     var icon by remember(modal) {
         mutableStateOf(initialCategory?.icon)

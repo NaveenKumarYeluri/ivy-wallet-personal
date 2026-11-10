@@ -74,7 +74,7 @@ fun BoxWithConstraintsScope.AccountModal(
         mutableStateOf(selectEndTextFieldValue(account?.name))
     }
     var color by remember(modal) {
-        mutableStateOf(account?.color?.let { Color(it) } ?: Ivy)
+        mutableStateOf(account?.color?.let { Color(it) } ?: UI.colors.primary)
     }
     var amount by remember(modal) {
         mutableStateOf(modal?.balance ?: 0.0)

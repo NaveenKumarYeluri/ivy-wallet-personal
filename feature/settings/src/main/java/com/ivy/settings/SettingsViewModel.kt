@@ -333,13 +333,13 @@ class SettingsViewModel @Inject constructor(
 
     private fun setTheme(newTheme: Theme) {
         currentTheme.value = newTheme
+        ivyContext.switchTheme(newTheme)
         viewModelScope.launch {
             ioThread {
                 val current = settingsDao.findFirst()
                 settingsWriter.save(
                     current.copy(theme = newTheme)
                 )
-                ivyContext.switchTheme(newTheme)
             }
         }
     }

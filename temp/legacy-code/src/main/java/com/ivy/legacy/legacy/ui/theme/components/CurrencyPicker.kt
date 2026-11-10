@@ -56,6 +56,7 @@ import com.ivy.ui.R
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Ivy
 import com.ivy.wallet.ui.theme.White
 import com.ivy.wallet.ui.theme.modal.DURATION_MODAL_ANIM
@@ -220,7 +221,7 @@ private fun SelectedCurrencyCard(
             .fillMaxWidth()
             .clip(UI.shapes.r3)
             .background(
-                brush = (if (preselected) GradientGreen else GradientIvy).asHorizontalBrush(),
+                brush = GradientPrimary.asHorizontalBrush(),
                 shape = UI.shapes.r3
             )
             .padding(vertical = 20.dp),

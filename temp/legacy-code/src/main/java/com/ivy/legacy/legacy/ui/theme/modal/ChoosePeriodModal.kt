@@ -51,6 +51,7 @@ import com.ivy.legacy.utils.onScreenStart
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.White
@@ -262,7 +263,7 @@ private fun MonthButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val background = if (selected) GradientIvy else Gradient.solid(UI.colors.medium)
+    val background = if (selected) GradientPrimary else Gradient.solid(UI.colors.medium)
     Text(
         modifier = modifier
             .clip(UI.shapes.rFull)
@@ -400,7 +401,7 @@ private fun IntervalFromToDate(
             },
             style = UI.typo.b2.style(
                 fontWeight = FontWeight.ExtraBold,
-                color = if (dateTime != null) Green else UI.colors.pureInverse
+                color = if (dateTime != null) UI.colors.primary else UI.colors.pureInverse
             )
         )
 

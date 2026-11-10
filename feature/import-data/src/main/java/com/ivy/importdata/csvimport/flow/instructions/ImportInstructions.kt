@@ -38,7 +38,7 @@ import com.ivy.legacy.utils.drawColoredShadow
 import com.ivy.navigation.navigation
 import com.ivy.onboarding.components.OnboardingToolbar
 import com.ivy.ui.R
-import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.White
 import com.ivy.wallet.ui.theme.components.GradientCutBottom
@@ -269,7 +269,7 @@ fun UploadFileStep(
             .padding(horizontal = 16.dp),
         text = btnTitle,
         textColor = White,
-        backgroundGradient = GradientIvy,
+        backgroundGradient = GradientPrimary,
         hasNext = false,
         iconStart = R.drawable.ic_upload
     ) {

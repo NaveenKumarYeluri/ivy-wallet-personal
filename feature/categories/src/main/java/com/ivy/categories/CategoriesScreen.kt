@@ -65,7 +65,7 @@ import com.ivy.ui.R
 import com.ivy.ui.rememberScrollPositionListState
 import com.ivy.wallet.domain.data.SortOrder
 import com.ivy.wallet.ui.theme.Gradient
-import com.ivy.wallet.ui.theme.GradientGreen
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.GreenDark
 import com.ivy.wallet.ui.theme.GreenLight
@@ -619,7 +619,7 @@ private fun SelectTypeButton(
     text: String,
     @DrawableRes icon: Int,
     selected: Boolean,
-    selectedGradient: Gradient = GradientGreen,
+    selectedGradient: Gradient = GradientPrimary,
     textSelectedColor: Color = White,
     onClick: () -> Unit
 ) {

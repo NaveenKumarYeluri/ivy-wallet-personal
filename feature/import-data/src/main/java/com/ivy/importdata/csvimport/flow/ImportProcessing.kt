@@ -21,7 +21,7 @@ import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.ui.R
-import com.ivy.wallet.ui.theme.GradientGreen
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.components.IvyDividerLine
 
@@ -96,7 +96,7 @@ private fun ProgressBar(
                 modifier = Modifier
                     .weight(progressPercent.toFloat())
                     .height(32.dp)
-                    .background(GradientGreen.asHorizontalBrush(), UI.shapes.rFull),
+                    .background(GradientPrimary.asHorizontalBrush(), UI.shapes.rFull),
             )
         }
 

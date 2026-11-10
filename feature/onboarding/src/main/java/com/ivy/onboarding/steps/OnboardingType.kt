@@ -26,7 +26,7 @@ import com.ivy.legacy.IvyWalletPreview
 import com.ivy.navigation.navigation
 import com.ivy.onboarding.components.OnboardingProgressSlider
 import com.ivy.ui.R
-import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.Orange
@@ -89,7 +89,7 @@ fun OnboardingType(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             selectedStep = 0,
             stepsCount = 4,
-            selectedColor = Orange
+            selectedColor = UI.colors.primary
         )
 
         Spacer(Modifier.weight(1f))
@@ -109,8 +109,8 @@ fun OnboardingType(
                 .padding(16.dp),
             text = stringResource(R.string.import_backup_file),
             iconStart = R.drawable.ic_export_csv,
-            iconTint = Green,
-            textColor = Green
+            iconTint = UI.colors.primary,
+            textColor = UI.colors.primary
         ) {
             onStartImport()
         }
@@ -123,7 +123,7 @@ fun OnboardingType(
                 .fillMaxWidth(),
             text = stringResource(R.string.start_fresh),
             textColor = White,
-            backgroundGradient = GradientIvy,
+            backgroundGradient = GradientPrimary,
             hasNext = true,
             enabled = true
         ) {

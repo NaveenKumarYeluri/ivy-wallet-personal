@@ -110,7 +110,7 @@ fun BoxWithConstraintsScope.TransactionsScreen(screen: TransactionsScreen) {
         nav.onBackPressed[screen] = {
             setStatusBarDarkTextCompat(
                 view = view,
-                darkText = ivyContext.theme == Theme.LIGHT
+                darkText = UI.colors.isLight
             )
             false
         }

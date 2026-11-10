@@ -48,7 +48,7 @@ import com.ivy.onboarding.components.OnboardingToolbar
 import com.ivy.onboarding.components.Suggestions
 import com.ivy.ui.R
 import com.ivy.wallet.domain.deprecated.logic.model.CreateCategoryData
-import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.Ivy
 import com.ivy.wallet.ui.theme.IvyDark
@@ -126,7 +126,7 @@ fun BoxWithConstraintsScope.OnboardingCategories(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         selectedStep = 3,
                         stepsCount = 4,
-                        selectedColor = IvyDark
+                        selectedColor = UI.colors.primary
                     )
 
                     Spacer(Modifier.height(48.dp))
@@ -192,7 +192,7 @@ fun BoxWithConstraintsScope.OnboardingCategories(
 
             text = stringResource(R.string.finish),
             textColor = White,
-            backgroundGradient = GradientIvy,
+            backgroundGradient = GradientPrimary,
             hasNext = false,
             enabled = true
         ) {

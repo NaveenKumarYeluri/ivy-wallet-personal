@@ -396,18 +396,6 @@ private fun QuickAccess(
                     Theme.DARK -> stringResource(R.string.dark_mode)
                     Theme.AMOLED_DARK -> stringResource(R.string.amoled_mode)
                     Theme.AUTO -> stringResource(R.string.auto_mode)
-                },
-                backgroundColor = when (theme) {
-                    Theme.LIGHT -> UI.colors.pure
-                    Theme.DARK -> UI.colors.pureInverse
-                    Theme.AMOLED_DARK -> UI.colors.pureInverse
-                    Theme.AUTO -> UI.colors.pure
-                },
-                tint = when (theme) {
-                    Theme.LIGHT -> UI.colors.pureInverse
-                    Theme.DARK -> UI.colors.pure
-                    Theme.AMOLED_DARK -> UI.colors.pure
-                    Theme.AUTO -> UI.colors.pureInverse
                 }
             ) {
                 onSwitchTheme()

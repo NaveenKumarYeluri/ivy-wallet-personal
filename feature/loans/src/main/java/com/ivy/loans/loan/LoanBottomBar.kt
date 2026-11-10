@@ -35,9 +35,7 @@ import com.ivy.legacy.utils.navigationBarInset
 import com.ivy.legacy.utils.toDensityPx
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Blue
-import com.ivy.wallet.ui.theme.GradientPurple
-import com.ivy.wallet.ui.theme.Green
-import com.ivy.wallet.ui.theme.Purple
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.White
 import com.ivy.wallet.ui.theme.components.IvyCircleButton
 import com.ivy.wallet.ui.theme.components.IvyIcon
@@ -53,6 +51,9 @@ internal fun BoxWithConstraintsScope.LoanBottomBar(
     selectTab: (LoanTab) -> Unit,
     onAdd: () -> Unit
 ) {
+    val primaryColor = UI.colors.primary
+    val fabGradient = GradientPrimary
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,7 +66,7 @@ internal fun BoxWithConstraintsScope.LoanBottomBar(
             icon = R.drawable.ic_custom_loan_s,
             name = "Pending",
             selected = tab == LoanTab.PENDING,
-            selectedColor = Purple
+            selectedColor = primaryColor
         ) {
             selectTab(LoanTab.PENDING)
         }
@@ -76,7 +77,7 @@ internal fun BoxWithConstraintsScope.LoanBottomBar(
             icon = R.drawable.ic_custom_loan_s,
             name = "Completed",
             selected = tab == LoanTab.COMPLETED,
-            selectedColor = Green
+            selectedColor = primaryColor
         ) {
             selectTab(LoanTab.COMPLETED)
         }
@@ -102,7 +103,7 @@ internal fun BoxWithConstraintsScope.LoanBottomBar(
             .zIndex(ZINDEX),
         backgroundPadding = 8.dp,
         icon = R.drawable.ic_add,
-        backgroundGradient = GradientPurple,
+        backgroundGradient = fabGradient,
         hasShadow = true,
         tint = White
     ) {

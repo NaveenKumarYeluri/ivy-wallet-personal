@@ -25,7 +25,7 @@ import com.ivy.legacy.utils.format
 import com.ivy.navigation.CSVScreen
 import com.ivy.navigation.navigation
 import com.ivy.ui.R
-import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.Red
@@ -137,7 +137,7 @@ fun ImportResultUI(
                 .padding(horizontal = 16.dp),
             text = stringResource(R.string.finish),
             textColor = White,
-            backgroundGradient = GradientIvy,
+            backgroundGradient = GradientPrimary,
             hasNext = true,
             enabled = true
         ) {

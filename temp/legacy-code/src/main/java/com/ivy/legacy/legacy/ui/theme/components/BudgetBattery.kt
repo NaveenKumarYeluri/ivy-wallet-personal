@@ -95,7 +95,7 @@ fun BudgetBattery(
                         }
 
                         percentSpent <= 0.50 -> {
-                            Ivy
+                            UI.colors.primary
                         }
 
                         percentSpent <= 0.75 -> {

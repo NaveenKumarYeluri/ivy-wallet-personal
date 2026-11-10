@@ -67,7 +67,7 @@ import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.Blue
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientGreen
-import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.GradientOrangeRevert
 import com.ivy.wallet.ui.theme.GradientRed
 import com.ivy.wallet.ui.theme.Gray
@@ -618,7 +618,7 @@ fun TypeAmountCurrency(
                 // Transfer
                 AmountTypeStyle(
                     icon = R.drawable.ic_transfer,
-                    gradient = GradientIvy,
+                    gradient = GradientPrimary,
                     iconTint = White,
                     textColor = UI.colors.primary
                 )

@@ -60,7 +60,7 @@ import com.ivy.legacy.ui.component.tags.ShowTagModal
 import com.ivy.legacy.utils.capitalizeLocal
 import com.ivy.legacy.utils.springBounce
 import com.ivy.ui.R
-import com.ivy.wallet.ui.theme.GradientGreen
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.GreenDark
 import com.ivy.wallet.ui.theme.GreenLight
@@ -311,7 +311,7 @@ fun BoxWithConstraintsScope.FilterOverlay(
         IvyButton(
             text = stringResource(R.string.apply_filter),
             iconStart = R.drawable.ic_filter_xs,
-            backgroundGradient = GradientGreen,
+            backgroundGradient = GradientPrimary,
             padding = 10.dp,
         ) {
             if (localFilter != null) {

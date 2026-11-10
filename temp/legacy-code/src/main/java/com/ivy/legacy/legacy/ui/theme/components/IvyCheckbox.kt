@@ -1,6 +1,8 @@
 package com.ivy.wallet.ui.theme.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -32,7 +34,7 @@ fun IvyCheckbox(
     checked: Boolean,
     onCheckedChange: (checked: Boolean) -> Unit
 ) {
-    Icon(
+    Box(
         modifier = modifier
             .size(48.dp)
             .clip(CircleShape)
@@ -40,13 +42,32 @@ fun IvyCheckbox(
                 onCheckedChange(!checked)
             })
             .padding(all = 12.dp),
-
-        painter = painterResource(
-            id = if (checked) R.drawable.ic_checkbox_checked else R.drawable.ic_checkbox_unchecked
-        ),
-        contentDescription = null,
-        tint = if (checked) Color.Unspecified else UI.colors.gray
-    )
+        contentAlignment = Alignment.Center
+    ) {
+        if (checked) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(UI.colors.primary),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier.size(16.dp),
+                    painter = painterResource(id = R.drawable.ic_check),
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+        } else {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(id = R.drawable.ic_checkbox_unchecked),
+                contentDescription = null,
+                tint = UI.colors.gray
+            )
+        }
+    }
 }
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")

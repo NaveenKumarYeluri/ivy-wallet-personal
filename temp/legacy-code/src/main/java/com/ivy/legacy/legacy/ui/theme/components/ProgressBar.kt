@@ -35,10 +35,10 @@ fun ProgressBar(
                             if (positiveProgress) Red else Green
                         }
                         percent <= 0.50 -> {
-                            if (positiveProgress) Orange else Ivy
+                            if (positiveProgress) Orange else UI.colors.primary
                         }
                         percent <= 0.75 -> {
-                            if (positiveProgress) Ivy else Orange
+                            if (positiveProgress) UI.colors.primary else Orange
                         }
                         else -> if (positiveProgress) Green else Red
                     },

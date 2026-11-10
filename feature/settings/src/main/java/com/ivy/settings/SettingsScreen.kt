@@ -58,7 +58,7 @@ import com.ivy.settings.modal.ChooseThemeModal
 import com.ivy.ui.R
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.Gradient
-import com.ivy.wallet.ui.theme.GradientGreen
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Red
 import com.ivy.wallet.ui.theme.White
@@ -266,7 +266,7 @@ private fun BoxWithConstraintsScope.UI(
             SettingsPrimaryButton(
                 icon = R.drawable.ic_export_csv,
                 text = stringResource(R.string.import_data),
-                backgroundGradient = GradientGreen
+                backgroundGradient = GradientPrimary
             ) {
                 nav.navigateTo(
                     ImportScreen(

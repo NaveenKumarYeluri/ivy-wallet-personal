@@ -56,6 +56,7 @@ import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.domain.deprecated.logic.model.CreateAccountData
 import com.ivy.wallet.domain.deprecated.logic.model.CreateLoanData
 import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Ivy
 import com.ivy.wallet.ui.theme.White
@@ -115,7 +116,7 @@ fun BoxWithConstraintsScope.LoanModal(
         mutableStateOf(modal?.loan?.amount ?: 0.0)
     }
     var color by remember(modal) {
-        mutableStateOf(loan?.color?.let { Color(it) } ?: Ivy)
+        mutableStateOf(loan?.color?.let { Color(it) } ?: UI.colors.primary)
     }
     var icon by remember(modal) {
         mutableStateOf(loan?.icon)
@@ -580,7 +581,7 @@ private fun RowScope.SelectorButton(
     onClick: () -> Unit
 ) {
     val rFull = UI.shapes.rFull
-    val gradientBrush = GradientIvy.asHorizontalBrush()
+    val gradientBrush = GradientPrimary.asHorizontalBrush()
     Text(
         modifier = Modifier
             .weight(1f)

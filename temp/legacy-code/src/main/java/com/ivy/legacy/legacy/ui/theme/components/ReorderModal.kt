@@ -28,7 +28,7 @@ import com.ivy.legacy.utils.numberBetween
 import com.ivy.legacy.utils.swap
 import com.ivy.ui.R
 import com.ivy.wallet.domain.data.Reorderable
-import com.ivy.wallet.ui.theme.GradientGreen
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.White
 import com.ivy.wallet.ui.theme.modal.IvyModal
 import java.util.*
@@ -121,7 +121,7 @@ fun <T : Reorderable> BoxScope.ReorderModal(
                 modifier = Modifier
                     .size(48.dp)
                     .testTag("reorder_done"),
-                backgroundGradient = GradientGreen,
+                backgroundGradient = GradientPrimary,
                 icon = R.drawable.ic_check,
                 tint = White
             ) {

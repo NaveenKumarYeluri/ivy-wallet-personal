@@ -1,6 +1,8 @@
 package com.ivy.design.l2_components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,7 +34,7 @@ fun Checkbox(
     contentDescription: String = "checkbox",
     onCheckedChange: (checked: Boolean) -> Unit
 ) {
-    IvyIcon(
+    Box(
         modifier = modifier
             .size(48.dp)
             .clip(CircleShape)
@@ -40,10 +42,32 @@ fun Checkbox(
                 onCheckedChange(!checked)
             })
             .padding(all = 12.dp),
-        icon = if (checked) R.drawable.ic_checkbox_checked else R.drawable.ic_checkbox_unchecked,
-        contentDescription = contentDescription,
-        tint = if (checked) Color.Unspecified else UI.colors.gray
-    )
+        contentAlignment = Alignment.Center
+    ) {
+        if (checked) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(UI.colors.primary),
+                contentAlignment = Alignment.Center
+            ) {
+                IvyIcon(
+                    modifier = Modifier.size(16.dp),
+                    icon = com.ivy.ui.R.drawable.ic_check,
+                    contentDescription = contentDescription,
+                    tint = Color.White
+                )
+            }
+        } else {
+            IvyIcon(
+                modifier = Modifier.size(24.dp),
+                icon = R.drawable.ic_checkbox_unchecked,
+                contentDescription = contentDescription,
+                tint = UI.colors.gray
+            )
+        }
+    }
 }
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")

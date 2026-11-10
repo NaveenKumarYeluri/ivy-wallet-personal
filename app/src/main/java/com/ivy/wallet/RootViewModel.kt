@@ -61,14 +61,18 @@ class RootViewModel @Inject constructor(
         viewModelScope.launch {
             TestIdlingResource.increment()
 
-            ioThread {
-                val theme = settingsDao.findAll().firstOrNull()?.theme
+            val theme = ioThread {
+                settingsDao.findAll().firstOrNull()?.theme
                     ?: if (systemDarkMode) Theme.DARK else Theme.LIGHT
-                ivyContext.switchTheme(theme)
-
+            }
+            val accent = ioThread {
                 val accentName = sharedPrefs.getString(SharedPrefs.THEME_ACCENT_COLOR, ThemeAccent.GREEN.name)
-                ivyContext.switchAccent(ThemeAccent.fromName(accentName))
+                ThemeAccent.fromName(accentName)
+            }
+            ivyContext.switchTheme(theme)
+            ivyContext.switchAccent(accent)
 
+            ioThread {
                 ivyContext.initStartDayOfMonthInMemory(sharedPrefs = sharedPrefs)
             }
 

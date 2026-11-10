@@ -403,7 +403,7 @@ private fun TransferRowMini(
     ) {
         Spacer(Modifier.width(24.dp))
 
-        val fromColor = fromAccount?.color?.toComposeColor() ?: Ivy
+        val fromColor = fromAccount?.color?.toComposeColor() ?: UI.colors.primary
         val fromContrastColor = findContrastTextColor(fromColor)
         IvyButton(
             text = fromAccount?.name ?: "Null",
@@ -424,7 +424,7 @@ private fun TransferRowMini(
             tint = UI.colors.pureInverse
         )
 
-        val toColor = toAccount?.color?.toComposeColor() ?: Ivy
+        val toColor = toAccount?.color?.toComposeColor() ?: UI.colors.primary
         val toContrastColor = findContrastTextColor(toColor)
         IvyButton(
             text = toAccount?.name ?: "Null",

@@ -66,8 +66,9 @@ fun IvyTheme(
             SideEffect {
                 val window = (view.context as Activity).window
                 window.statusBarColor = Color.Transparent.toArgb()
-                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars =
-                    colors.isLight
+                val controller = WindowCompat.getInsetsController(window, view)
+                controller.isAppearanceLightStatusBars = colors.isLight
+                controller.isAppearanceLightNavigationBars = colors.isLight
             }
         }
 

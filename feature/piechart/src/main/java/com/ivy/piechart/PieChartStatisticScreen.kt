@@ -62,6 +62,7 @@ import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
 import com.ivy.ui.rememberScrollPositionListState
 import com.ivy.wallet.ui.theme.GradientGreen
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.IvyDark
@@ -316,7 +317,7 @@ private fun Header(
                 Spacer(Modifier.width(12.dp))
 
                 val backgroundGradient = if (transactionType == TransactionType.EXPENSE) {
-                    gradientExpenses()
+                    GradientPrimary
                 } else {
                     GradientGreen
                 }
@@ -330,11 +331,7 @@ private fun Header(
                     iconPadding = 4.dp,
                     icon = R.drawable.ic_plus,
                     backgroundGradient = backgroundGradient,
-                    tint = if (transactionType == TransactionType.EXPENSE) {
-                        UI.colors.pure
-                    } else {
-                        White
-                    }
+                    tint = White
                 ) {
                     onAdd(transactionType)
                 }

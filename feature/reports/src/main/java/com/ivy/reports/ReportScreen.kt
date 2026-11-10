@@ -378,8 +378,8 @@ private fun Toolbar(
         // Export CSV
         IvyOutlinedButton(
             text = stringResource(R.string.export),
-            iconTint = Green,
-            textColor = Green,
+            iconTint = UI.colors.primary,
+            textColor = UI.colors.primary,
             solidBackground = true,
             padding = 8.dp,
             iconStart = R.drawable.ic_export_csv

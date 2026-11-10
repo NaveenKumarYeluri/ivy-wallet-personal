@@ -80,7 +80,7 @@ fun BufferBattery(
                         }
 
                         bufferExceededPercent <= 0.50 -> {
-                            Ivy
+                            UI.colors.primary
                         }
 
                         bufferExceededPercent <= 0.75 -> {
