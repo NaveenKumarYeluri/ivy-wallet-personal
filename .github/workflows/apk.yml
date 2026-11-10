@@ -31,7 +31,11 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Optimized Release and Debug APKs
-        run: ./gradlew assembleRelease assembleDebug --stacktrace
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:+UseG1GC -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
+        run: |
+          ./gradlew assembleRelease --stacktrace
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload Optimized Release APK
         uses: actions/upload-artifact@v7
