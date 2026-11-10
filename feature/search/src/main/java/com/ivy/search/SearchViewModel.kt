@@ -9,7 +9,10 @@ import com.ivy.base.legacy.TransactionHistoryItem
 import com.ivy.data.model.primitive.NotBlankTrimmedString
 import com.ivy.ui.ComposeViewModel
 import com.ivy.data.model.Category
+import com.ivy.data.model.Tag
+import com.ivy.data.model.TagId
 import com.ivy.data.repository.CategoryRepository
+import com.ivy.data.repository.TagRepository
 import com.ivy.domain.features.Features
 import com.ivy.legacy.datamodel.Account
 import com.ivy.legacy.utils.getDefaultFIATCurrency
@@ -31,6 +34,7 @@ class SearchViewModel @Inject constructor(
     private val trnsWithDateDivsAct: TrnsWithDateDivsAct,
     private val accountsAct: AccountsAct,
     private val categoryRepository: CategoryRepository,
+    private val tagRepository: TagRepository,
     private val baseCurrencyAct: BaseCurrencyAct,
     private val allTrnsAct: AllTrnsAct,
     private val features: Features
@@ -41,6 +45,8 @@ class SearchViewModel @Inject constructor(
     private val baseCurrency = mutableStateOf<String>(getDefaultFIATCurrency().currencyCode)
     private val accounts = mutableStateOf<ImmutableList<Account>>(persistentListOf())
     private val categories = mutableStateOf<ImmutableList<Category>>(persistentListOf())
+    private val tags = mutableStateOf<ImmutableList<Tag>>(persistentListOf())
+    private val selectedTagId = mutableStateOf<TagId?>(null)
     private val searchQuery = mutableStateOf("")
 
     @Composable
@@ -51,7 +57,7 @@ class SearchViewModel @Inject constructor(
     @Composable
     override fun uiState(): SearchState {
         LaunchedEffect(Unit) {
-            search(searchQuery.value)
+            search(searchQuery.value, selectedTagId.value)
         }
 
         return SearchState(
@@ -60,26 +66,48 @@ class SearchViewModel @Inject constructor(
             baseCurrency = baseCurrency.value,
             accounts = accounts.value,
             categories = categories.value,
+            tags = tags.value,
+            selectedTagId = selectedTagId.value,
             shouldShowAccountSpecificColorInTransactions = getShouldShowAccountSpecificColorInTransactions()
         )
     }
 
     override fun onEvent(event: SearchEvent) {
         when (event) {
-            is SearchEvent.Search -> search(event.query)
+            is SearchEvent.Search -> search(event.query, selectedTagId.value)
+            is SearchEvent.SelectTag -> {
+                val newTag = if (selectedTagId.value == event.tagId) null else event.tagId
+                selectedTagId.value = newTag
+                search(searchQuery.value, newTag)
+            }
         }
     }
 
-    private fun search(query: String) {
+    private fun search(query: String, tagIdFilter: TagId?) {
         searchQuery.value = query
         val normalizedQuery = query.lowercase().trim()
+        val queryWithoutHash = normalizedQuery.removePrefix("#").trim()
 
         viewModelScope.launch {
+            val allTags = ioThread { tagRepository.findAll() }
+            val tagMap = allTags.associateBy { it.id }
+
             val queryResult = ioThread {
                 val filteredTransactions = allTrnsAct(Unit)
                     .filter { transaction ->
-                        transaction.title.matchesQuery(normalizedQuery) ||
-                                transaction.description.matchesQuery(normalizedQuery)
+                        val matchesTagFilter = tagIdFilter == null || transaction.tags.contains(tagIdFilter)
+
+                        val matchesSearchText = if (queryWithoutHash.isEmpty()) {
+                            true
+                        } else {
+                            transaction.title.matchesQuery(normalizedQuery) ||
+                                    transaction.description.matchesQuery(normalizedQuery) ||
+                                    transaction.tags.any { tagId ->
+                                        tagMap[tagId]?.name?.value?.lowercase()?.contains(queryWithoutHash) == true
+                                    }
+                        }
+
+                        matchesTagFilter && matchesSearchText
                     }
                 trnsWithDateDivsAct(
                     TrnsWithDateDivsAct.Input(
@@ -93,6 +121,7 @@ class SearchViewModel @Inject constructor(
             baseCurrency.value = baseCurrencyAct(Unit)
             accounts.value = accountsAct(Unit)
             categories.value = categoryRepository.findAll().toImmutableList()
+            tags.value = allTags.toImmutableList()
         }
     }
 
