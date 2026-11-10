@@ -259,7 +259,9 @@ fun BoxWithConstraintsScope.HomeUi(
             },
             onManageTemplatesClick = {
                 manageTemplatesModalVisible = true
-            }
+            },
+            expenseTrendPercent = uiState.expenseTrendPercent,
+            incomeTrendPercent = uiState.incomeTrendPercent
         )
     }
 
@@ -391,6 +393,8 @@ fun HomeLazyColumn(
     onTemplateClick: (QuickTemplate) -> Unit = {},
     onAddTemplateClick: () -> Unit = {},
     onManageTemplatesClick: () -> Unit = {},
+    expenseTrendPercent: Double? = null,
+    incomeTrendPercent: Double? = null,
     modifier: Modifier = Modifier
 ) {
     val ivyContext = ivyWalletCtx()
@@ -439,7 +443,9 @@ fun HomeLazyColumn(
                 onHiddenBalanceClick = onHiddenBalanceClick,
                 percentExpanded = 1f,
                 hideIncome = hideIncome,
-                onHiddenIncomeClick = onHiddenIncomeClick
+                onHiddenIncomeClick = onHiddenIncomeClick,
+                expenseTrendPercent = expenseTrendPercent,
+                incomeTrendPercent = incomeTrendPercent
             )
         }
         item {

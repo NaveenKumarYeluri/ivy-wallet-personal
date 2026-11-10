@@ -212,4 +212,15 @@ data class TimePeriod(
             month.name
         }
     }
+
+    fun previousMonthPeriod(): TimePeriod? {
+        val m = month ?: return null
+        val y = year ?: return null
+        val prevMonthVal = if (m.monthValue == 1) 12 else m.monthValue - 1
+        val prevYear = if (m.monthValue == 1) y - 1 else y
+        return TimePeriod(
+            month = Month.fromMonthValue(prevMonthVal),
+            year = prevYear
+        )
+    }
 }

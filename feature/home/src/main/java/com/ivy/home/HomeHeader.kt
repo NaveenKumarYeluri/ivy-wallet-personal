@@ -224,6 +224,8 @@ fun CashFlowInfo(
     onBalanceClick: () -> Unit,
     percentExpanded: Float,
     onHiddenBalanceClick: () -> Unit,
+    expenseTrendPercent: Double? = null,
+    incomeTrendPercent: Double? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -261,7 +263,9 @@ fun CashFlowInfo(
             monthlyIncome = monthlyIncome,
             monthlyExpenses = monthlyExpenses,
             hideIncome = hideIncome,
-            onHiddenIncomeClick = onHiddenIncomeClick
+            onHiddenIncomeClick = onHiddenIncomeClick,
+            expenseTrendPercent = expenseTrendPercent,
+            incomeTrendPercent = incomeTrendPercent
         )
 
         val cashflow = monthlyIncome - monthlyExpenses
@@ -355,6 +359,8 @@ private fun IncomeExpenses(
     monthlyExpenses: Double,
     hideIncome: Boolean,
     onHiddenIncomeClick: () -> Unit,
+    expenseTrendPercent: Double? = null,
+    incomeTrendPercent: Double? = null,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -372,6 +378,7 @@ private fun IncomeExpenses(
             label = stringResource(R.string.income),
             currency = currency,
             amount = monthlyIncome,
+            trendPercent = incomeTrendPercent,
             testTag = "home_card_income"
         ) {
             if (hideIncome) {
@@ -395,6 +402,7 @@ private fun IncomeExpenses(
             label = stringResource(R.string.expenses),
             currency = currency,
             amount = monthlyExpenses.absoluteValue,
+            trendPercent = expenseTrendPercent,
             testTag = "home_card_expense",
         ) {
             nav.navigateTo(
@@ -418,6 +426,7 @@ private fun RowScope.HeaderCard(
     currency: String,
     amount: Double,
     testTag: String,
+    trendPercent: Double? = null,
     onClick: () -> Unit,
 ) {
     Column(
@@ -476,6 +485,29 @@ private fun RowScope.HeaderCard(
             Spacer(Modifier.width(4.dp))
         }
 
-        Spacer(Modifier.height(20.dp))
+        if (trendPercent != null) {
+            Spacer(Modifier.height(4.dp))
+            Row(
+                modifier = Modifier
+                    .padding(start = 20.dp, bottom = 12.dp)
+                    .clip(UI.shapes.rFull)
+                    .background(textColor.copy(alpha = 0.15f))
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val arrow = if (trendPercent > 0) "▲" else if (trendPercent < 0) "▼" else "—"
+                val sign = if (trendPercent > 0) "+" else ""
+                val text = "$arrow $sign${String.format(java.util.Locale.US, "%.1f", trendPercent)}% vs last mo"
+                Text(
+                    text = text,
+                    style = UI.typo.c.style(
+                        color = textColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        } else {
+            Spacer(Modifier.height(20.dp))
+        }
     }
 }

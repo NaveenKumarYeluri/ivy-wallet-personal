@@ -132,6 +132,8 @@ class HomeViewModel @Inject constructor(
     private var hideBalance by mutableStateOf(false)
     private var hideIncome by mutableStateOf(false)
     private var expanded by mutableStateOf(true)
+    private var expenseTrendPercent by mutableStateOf<Double?>(null)
+    private var incomeTrendPercent by mutableStateOf<Double?>(null)
 
     @Composable
     override fun uiState(): HomeState {
@@ -154,7 +156,9 @@ class HomeViewModel @Inject constructor(
             hideBalance = getHideBalance(),
             expanded = getExpanded(),
             hideIncome = getHideIncome(),
-            shouldShowAccountSpecificColorInTransactions = getShouldShowAccountSpecificColorInTransactions()
+            shouldShowAccountSpecificColorInTransactions = getShouldShowAccountSpecificColorInTransactions(),
+            expenseTrendPercent = expenseTrendPercent,
+            incomeTrendPercent = incomeTrendPercent
         )
     }
 
@@ -327,6 +331,42 @@ class HomeViewModel @Inject constructor(
                 range = timeRange
             )
         )
+
+        val prevPeriod = period.previousMonthPeriod()
+        val prevStats = prevPeriod?.let { prevP ->
+            try {
+                val prevRange = prevP.toRange(
+                    startDateOfMonth = ivyContext.startDayOfMonth,
+                    timeConverter = timeConverter,
+                    timeProvider = timeProvider
+                ).toUTCCloseTimeRange()
+                calcIncomeExpenseAct(
+                    CalcIncomeExpenseAct.Input(
+                        baseCurrency = settings.baseCurrency,
+                        accounts = accounts,
+                        range = prevRange
+                    )
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        expenseTrendPercent = if (prevStats != null && prevStats.expense > BigDecimal.ZERO) {
+            val curr = incomeExpense.expense.toDouble()
+            val prev = prevStats.expense.toDouble()
+            ((curr - prev) / prev) * 100.0
+        } else {
+            null
+        }
+
+        incomeTrendPercent = if (prevStats != null && prevStats.income > BigDecimal.ZERO) {
+            val curr = incomeExpense.income.toDouble()
+            val prev = prevStats.income.toDouble()
+            ((curr - prev) / prev) * 100.0
+        } else {
+            null
+        }
 
         val balanceAmount = calcWalletBalanceAct(
             CalcWalletBalanceAct.Input(baseCurrency = settings.baseCurrency)
