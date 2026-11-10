@@ -4,26 +4,28 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import com.ivy.design.system.colors.IvyColors
 
 @Composable
 fun IvyMaterial3Theme(
     isTrueBlack: Boolean,
     dark: Boolean = isSystemInDarkTheme(),
+    accentColor: Color = Color(0xFF27AE60),
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
-        colorScheme = if (dark) ivyDarkColorScheme(isTrueBlack) else ivyLightColorScheme(),
+        colorScheme = if (dark) ivyDarkColorScheme(isTrueBlack, accentColor) else ivyLightColorScheme(accentColor),
         content = content,
     )
 }
 
-private fun ivyLightColorScheme(): ColorScheme = ColorScheme(
-    primary = IvyColors.Purple.primary,
+private fun ivyLightColorScheme(accentColor: Color = Color(0xFF27AE60)): ColorScheme = ColorScheme(
+    primary = accentColor,
     onPrimary = IvyColors.White,
-    primaryContainer = IvyColors.Purple.light,
-    onPrimaryContainer = IvyColors.White,
-    inversePrimary = IvyColors.Purple.dark,
+    primaryContainer = accentColor.copy(alpha = 0.2f),
+    onPrimaryContainer = accentColor,
+    inversePrimary = accentColor,
     secondary = IvyColors.Green.primary,
     onSecondary = IvyColors.White,
     secondaryContainer = IvyColors.Green.light,
@@ -53,12 +55,12 @@ private fun ivyLightColorScheme(): ColorScheme = ColorScheme(
     scrim = IvyColors.ExtraDarkGray.copy(alpha = 0.8f)
 )
 
-private fun ivyDarkColorScheme(isTrueBlack: Boolean): ColorScheme = ColorScheme(
-    primary = IvyColors.Purple.primary,
+private fun ivyDarkColorScheme(isTrueBlack: Boolean, accentColor: Color = Color(0xFF27AE60)): ColorScheme = ColorScheme(
+    primary = accentColor,
     onPrimary = IvyColors.White,
-    primaryContainer = IvyColors.Purple.light,
+    primaryContainer = accentColor.copy(alpha = 0.2f),
     onPrimaryContainer = IvyColors.White,
-    inversePrimary = IvyColors.Purple.dark,
+    inversePrimary = accentColor,
     secondary = IvyColors.Green.primary,
     onSecondary = IvyColors.White,
     secondaryContainer = IvyColors.Green.light,

@@ -107,6 +107,13 @@
     <string name="dark_mode">Dark mode</string>
     <string name="amoled_mode">AMOLED Dark mode</string>
     <string name="auto_mode">Auto mode</string>
+    <string name="choose_theme">Choose theme</string>
+    <string name="choose_accent_color">Choose accent color</string>
+    <string name="accent_color">Accent color</string>
+    <string name="theme_system_description">Follows device dark/light setting</string>
+    <string name="theme_light_description">Clean, bright appearance</string>
+    <string name="theme_dark_description">Balanced dark appearance</string>
+    <string name="theme_amoled_description">Pure black for OLED &amp; battery saving</string>
     <string name="planned_payments">Planned\nPayments</string>
     <string name="share_ivy">Share Ivy</string>
     <string name="reports">Reports</string>

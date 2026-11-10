@@ -69,9 +69,11 @@ fun IvyTheme(
             }
         }
 
+        val accentColor = Color(design.context().accent.colorHex)
         IvyMaterial3Theme(
             dark = !colors.isLight,
             isTrueBlack = theme == Theme.AMOLED_DARK,
+            accentColor = accentColor,
             content = content,
         )
     }

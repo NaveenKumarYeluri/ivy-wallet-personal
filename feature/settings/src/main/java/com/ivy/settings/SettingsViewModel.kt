@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.ivy.base.legacy.SharedPrefs
 import com.ivy.base.legacy.Theme
+import com.ivy.base.legacy.ThemeAccent
 import com.ivy.base.legacy.refreshWidget
 import com.ivy.data.backup.BackupDataUseCase
 import com.ivy.data.db.dao.read.SettingsDao
@@ -63,6 +64,7 @@ class SettingsViewModel @Inject constructor(
     private val currencyCode = mutableStateOf("")
     private val name = mutableStateOf("")
     private val currentTheme = mutableStateOf<Theme>(Theme.AUTO)
+    private val currentAccent = mutableStateOf<ThemeAccent>(ThemeAccent.GREEN)
     private val lockApp = mutableStateOf(false)
     private val showNotifications = mutableStateOf(true)
     private val hideCurrentBalance = mutableStateOf(false)
@@ -81,6 +83,7 @@ class SettingsViewModel @Inject constructor(
             currencyCode = getCurrencyCode(),
             name = getName(),
             currentTheme = getCurrentTheme(),
+            currentAccent = getCurrentAccent(),
             lockApp = getLockApp(),
             showNotifications = getShowNotifications(),
             hideCurrentBalance = getHideCurrentBalance(),
@@ -96,6 +99,7 @@ class SettingsViewModel @Inject constructor(
         initializeCurrency()
         initializeName()
         initializeCurrentTheme()
+        initializeCurrentAccent()
         initializeLockApp()
         initializeShowNotifications()
         initializeHideCurrentBalance()
@@ -122,6 +126,11 @@ class SettingsViewModel @Inject constructor(
 
     private suspend fun initializeCurrentTheme() {
         currentTheme.value = settingsAct(Unit).theme
+    }
+
+    private fun initializeCurrentAccent() {
+        val accentName = sharedPrefs.getString(SharedPrefs.THEME_ACCENT_COLOR, ThemeAccent.GREEN.name)
+        currentAccent.value = ThemeAccent.fromName(accentName)
     }
 
     private fun initializeLockApp() {
@@ -166,6 +175,11 @@ class SettingsViewModel @Inject constructor(
     @Composable
     private fun getCurrentTheme(): Theme {
         return currentTheme.value
+    }
+
+    @Composable
+    private fun getCurrentAccent(): ThemeAccent {
+        return currentAccent.value
     }
 
     @Composable
@@ -214,6 +228,8 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.ExportToCsv -> exportToCSV(event.rootScreen)
             is SettingsEvent.BackupData -> exportToZip(event.rootScreen)
             SettingsEvent.SwitchTheme -> switchTheme()
+            is SettingsEvent.SetTheme -> setTheme(event.theme)
+            is SettingsEvent.SetAccent -> setAccent(event.accent)
             is SettingsEvent.SetLockApp -> setLockApp(event.lockApp)
             is SettingsEvent.SetShowNotifications -> setShowNotifications(event.showNotifications)
             is SettingsEvent.SetHideCurrentBalance -> setHideCurrentBalance(
@@ -246,9 +262,6 @@ class SettingsViewModel @Inject constructor(
                         currency = newCurrency
                     )
                 )
-                AssetCode.from(newCurrency).onRight {
-                    syncExchangeRatesUseCase.sync(it)
-                }
             }
         }
     }
@@ -316,6 +329,25 @@ class SettingsViewModel @Inject constructor(
                 currentTheme.value = this.theme
             }
         }
+    }
+
+    private fun setTheme(newTheme: Theme) {
+        currentTheme.value = newTheme
+        viewModelScope.launch {
+            ioThread {
+                val current = settingsDao.findFirst()
+                settingsWriter.save(
+                    current.copy(theme = newTheme)
+                )
+                ivyContext.switchTheme(newTheme)
+            }
+        }
+    }
+
+    private fun setAccent(newAccent: ThemeAccent) {
+        currentAccent.value = newAccent
+        sharedPrefs.putString(SharedPrefs.THEME_ACCENT_COLOR, newAccent.name)
+        ivyContext.switchAccent(newAccent)
     }
 
     private fun setLockApp(lock: Boolean) {

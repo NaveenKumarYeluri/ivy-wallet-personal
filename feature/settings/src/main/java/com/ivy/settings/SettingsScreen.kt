@@ -37,6 +37,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ivy.base.legacy.Theme
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import com.ivy.base.legacy.ThemeAccent
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.design.l1_buildingBlocks.IconScale
@@ -45,11 +48,12 @@ import com.ivy.design.utils.thenIf
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.rootScreen
 import com.ivy.legacy.utils.drawColoredShadow
-import com.ivy.navigation.ExchangeRatesScreen
 import com.ivy.navigation.FeaturesScreen
 import com.ivy.navigation.ImportScreen
 import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
+import com.ivy.settings.modal.ChooseAccentColorModal
+import com.ivy.settings.modal.ChooseThemeModal
 import com.ivy.ui.R
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.Gradient
@@ -76,8 +80,15 @@ fun BoxWithConstraintsScope.SettingsScreen() {
     UI(
         currencyCode = uiState.currencyCode,
         theme = uiState.currentTheme,
+        currentAccent = uiState.currentAccent,
         onSwitchTheme = {
             viewModel.onEvent(SettingsEvent.SwitchTheme)
+        },
+        onSetTheme = {
+            viewModel.onEvent(SettingsEvent.SetTheme(it))
+        },
+        onSetAccent = {
+            viewModel.onEvent(SettingsEvent.SetAccent(it))
         },
         lockApp = uiState.lockApp,
         showNotifications = uiState.showNotifications,
@@ -137,6 +148,9 @@ private fun BoxWithConstraintsScope.UI(
     currencyCode: String,
     theme: Theme,
     onSwitchTheme: () -> Unit,
+    currentAccent: ThemeAccent = ThemeAccent.GREEN,
+    onSetTheme: (Theme) -> Unit = {},
+    onSetAccent: (ThemeAccent) -> Unit = {},
     lockApp: Boolean,
     nameLocalAccount: String?,
     languageOptionVisible: Boolean,
@@ -163,6 +177,8 @@ private fun BoxWithConstraintsScope.UI(
     var currencyModalVisible by remember { mutableStateOf(false) }
     var nameModalVisible by remember { mutableStateOf(false) }
     var chooseStartDateOfMonthVisible by remember { mutableStateOf(false) }
+    var themeModalVisible by remember { mutableStateOf(false) }
+    var accentModalVisible by remember { mutableStateOf(false) }
     var deleteCloudDataModalVisible by remember { mutableStateOf(false) }
     var deleteAllDataModalVisible by remember { mutableStateOf(false) }
     var deleteAllDataModalFinalVisible by remember { mutableStateOf(false) }
@@ -278,20 +294,20 @@ private fun BoxWithConstraintsScope.UI(
                     Theme.AUTO -> stringResource(R.string.auto_mode)
                 }
             ) {
-                onSwitchTheme()
+                themeModalVisible = true
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            AccentColorButton(
+                accent = currentAccent
+            ) {
+                accentModalVisible = true
             }
 
             Spacer(Modifier.height(12.dp))
 
             val nav = navigation()
-//            SettingsDefaultButton(
-//                icon = R.drawable.ic_custom_atom_m,
-//                text = "Features"
-//            ) {
-//                nav.navigateTo(FeaturesScreen)
-//            }
-//
-//            Spacer(Modifier.height(12.dp))
 
             if (languageOptionVisible) {
                 SettingsDefaultButton(
@@ -305,15 +321,6 @@ private fun BoxWithConstraintsScope.UI(
 
                 Spacer(Modifier.height(12.dp))
             }
-
-            SettingsDefaultButton(
-                icon = R.drawable.ic_currency,
-                text = stringResource(R.string.exchange_rates),
-            ) {
-                nav.navigateTo(ExchangeRatesScreen)
-            }
-
-            Spacer(Modifier.height(12.dp))
 
             AppSwitch(
                 lockApp = lockApp,
@@ -450,18 +457,18 @@ private fun BoxWithConstraintsScope.UI(
         }
     )
 
-    DeleteModal(
-        title = stringResource(R.string.delete_all_cloud_data_question),
-        description = stringResource(
-            R.string.delete_all_user_cloud_data_warning,
-            stringResource(R.string.your_account)
-        ),
-        visible = deleteCloudDataModalVisible,
-        dismiss = { deleteCloudDataModalVisible = false },
-        onDelete = {
-            onDeleteCloudUserData()
-            deleteCloudDataModalVisible = false
-        }
+    ChooseThemeModal(
+        visible = themeModalVisible,
+        currentTheme = theme,
+        dismiss = { themeModalVisible = false },
+        onThemeSelected = onSetTheme
+    )
+
+    ChooseAccentColorModal(
+        visible = accentModalVisible,
+        currentAccent = currentAccent,
+        dismiss = { accentModalVisible = false },
+        onAccentSelected = onSetAccent
     )
 
     ProgressModal(
@@ -554,9 +561,66 @@ private fun AppThemeButton(
         backgroundGradient = Gradient.solid(UI.colors.medium),
         textColor = UI.colors.pureInverse,
         iconPadding = 6.dp,
-        description = stringResource(R.string.tap_to_switch_theme),
+        description = stringResource(R.string.choose_theme),
         onClick = onClick
     )
+}
+
+@Composable
+private fun AccentColorButton(
+    accent: ThemeAccent,
+    onClick: () -> Unit
+) {
+    SettingsButtonRow(
+        onClick = onClick
+    ) {
+        Spacer(Modifier.width(12.dp))
+
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(Color(accent.colorHex), CircleShape)
+                .border(2.dp, UI.colors.pure, CircleShape)
+        )
+
+        Spacer(Modifier.width(12.dp))
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 18.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.accent_color),
+                style = UI.typo.b2.style(
+                    color = UI.colors.pureInverse,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(Modifier.height(2.dp))
+
+            Text(
+                text = accent.title,
+                style = UI.typo.c.style(
+                    color = UI.colors.gray,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+        }
+
+        Spacer(Modifier.width(8.dp))
+
+        IvyIconScaled(
+            icon = R.drawable.ic_expand_more,
+            tint = UI.colors.gray,
+            iconScale = IconScale.S,
+            padding = 0.dp
+        )
+
+        Spacer(Modifier.width(12.dp))
+    }
 }
 
 @Composable

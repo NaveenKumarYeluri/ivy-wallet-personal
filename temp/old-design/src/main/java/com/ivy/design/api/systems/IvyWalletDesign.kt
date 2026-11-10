@@ -114,6 +114,11 @@ abstract class IvyWalletDesign : IvyDesign {
 
     @Deprecated("Old design system. Use `:ivy-design` and Material3")
     override fun colors(theme: Theme, isDarkModeEnabled: Boolean): IvyColors {
+        val currentAccent = context().accent
+        val accentPrimary = Color(currentAccent.colorHex)
+        val accentLight = Color(currentAccent.lightHex)
+        val accentDark = Color(currentAccent.darkHex)
+
         return when (theme) {
             Theme.LIGHT -> object : IvyColors {
                 override val pure = White
@@ -122,8 +127,8 @@ abstract class IvyWalletDesign : IvyDesign {
                 override val medium = MediumWhite
                 override val mediumInverse = MediumBlack
 
-                override val primary = Purple
-                override val primary1 = IvyDark
+                override val primary = accentPrimary
+                override val primary1 = accentDark
 
                 override val green = Green
                 override val green1 = GreenLight
@@ -145,8 +150,8 @@ abstract class IvyWalletDesign : IvyDesign {
                 override val medium = MediumBlack
                 override val mediumInverse = MediumWhite
 
-                override val primary = Purple
-                override val primary1 = IvyLight
+                override val primary = accentPrimary
+                override val primary1 = accentLight
 
                 override val green = Green
                 override val green1 = GreenDark
@@ -168,8 +173,8 @@ abstract class IvyWalletDesign : IvyDesign {
                 override val medium = MediumBlack
                 override val mediumInverse = MediumWhite
 
-                override val primary = Purple
-                override val primary1 = IvyLight
+                override val primary = accentPrimary
+                override val primary1 = accentLight
 
                 override val green = Green
                 override val green1 = GreenDark

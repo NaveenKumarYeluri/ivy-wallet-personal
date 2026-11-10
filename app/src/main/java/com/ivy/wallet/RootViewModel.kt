@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ivy.base.legacy.SharedPrefs
 import com.ivy.base.legacy.Theme
+import com.ivy.base.legacy.ThemeAccent
 import com.ivy.base.legacy.stringRes
 import com.ivy.base.model.TransactionType
 import com.ivy.data.db.dao.read.SettingsDao
@@ -64,6 +65,9 @@ class RootViewModel @Inject constructor(
                 val theme = settingsDao.findAll().firstOrNull()?.theme
                     ?: if (systemDarkMode) Theme.DARK else Theme.LIGHT
                 ivyContext.switchTheme(theme)
+
+                val accentName = sharedPrefs.getString(SharedPrefs.THEME_ACCENT_COLOR, ThemeAccent.GREEN.name)
+                ivyContext.switchAccent(ThemeAccent.fromName(accentName))
 
                 ivyContext.initStartDayOfMonthInMemory(sharedPrefs = sharedPrefs)
             }

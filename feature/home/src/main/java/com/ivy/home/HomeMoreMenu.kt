@@ -62,7 +62,6 @@ import com.ivy.legacy.utils.toDensityPx
 import com.ivy.legacy.utils.verticalSwipeListener
 import com.ivy.navigation.BudgetScreen
 import com.ivy.navigation.CategoriesScreen
-import com.ivy.navigation.ExchangeRatesScreen
 import com.ivy.navigation.IvyPreview
 import com.ivy.navigation.LoansScreen
 import com.ivy.navigation.PlannedPaymentsScreen
@@ -431,26 +430,9 @@ private fun QuickAccess(
         // Second Row
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Top
         ) {
-            Spacer(Modifier.weight(1f))
-
-            val context = LocalContext.current
-//        MoreMenuButton(
-//            icon = R.drawable.home_more_menu_reports,
-//            label = "Charts"
-//        ) {
-//            ivyContext.navigateTo(Screen.Charts)
-//        }
-
-            MoreMenuButton(
-                icon = R.drawable.ic_currency,
-                label = stringResource(R.string.exchange_rates)
-            ) {
-                nav.navigateTo(ExchangeRatesScreen)
-            }
-
             Spacer(Modifier.weight(1f))
 
             MoreMenuButton(
