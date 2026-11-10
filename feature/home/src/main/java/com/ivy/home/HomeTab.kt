@@ -64,7 +64,16 @@ import com.ivy.legacy.ui.component.transaction.transactions
 import com.ivy.legacy.utils.horizontalSwipeListener
 import com.ivy.legacy.utils.rememberSwipeListenerState
 import com.ivy.legacy.utils.verticalSwipeListener
+import androidx.compose.ui.platform.LocalContext
+import com.ivy.base.legacy.SharedPrefs
+import com.ivy.home.quicktemplate.CreateTemplateModal
+import com.ivy.home.quicktemplate.ManageTemplatesModal
+import com.ivy.home.quicktemplate.QuickTemplate
+import com.ivy.home.quicktemplate.QuickTemplateManager
+import com.ivy.home.quicktemplate.QuickTemplatesRow
+import com.ivy.navigation.EditTransactionScreen
 import com.ivy.navigation.IvyPreview
+import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
 import com.ivy.ui.rememberScrollPositionListState
@@ -116,6 +125,13 @@ fun BoxWithConstraintsScope.HomeUi(
     }
 
     val baseCurrency = uiState.baseData.baseCurrency
+
+    val context = LocalContext.current
+    val nav = navigation()
+    val templateManager = remember { QuickTemplateManager(SharedPrefs(context)) }
+    var templates by remember { mutableStateOf(templateManager.getTemplates()) }
+    var createTemplateModalVisible by remember { mutableStateOf(false) }
+    var manageTemplatesModalVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -225,6 +241,24 @@ fun BoxWithConstraintsScope.HomeUi(
             } then2 onEvent,
             onSkipAllTransactions = {
                 skipAllModalVisible = true
+            },
+            templates = templates,
+            onTemplateClick = { template ->
+                nav.navigateTo(
+                    EditTransactionScreen(
+                        initialTransactionId = null,
+                        type = template.type,
+                        categoryId = template.categoryId,
+                        initialAmount = template.amount,
+                        initialTitle = template.name
+                    )
+                )
+            },
+            onAddTemplateClick = {
+                createTemplateModalVisible = true
+            },
+            onManageTemplatesClick = {
+                manageTemplatesModalVisible = true
             }
         )
     }
@@ -294,6 +328,30 @@ fun BoxWithConstraintsScope.HomeUi(
         onEvent(HomeEvent.SkipAllPlanned(uiState.overdue.trns))
         skipAllModalVisible = false
     }
+
+    CreateTemplateModal(
+        visible = createTemplateModalVisible,
+        dismiss = { createTemplateModalVisible = false },
+        onSaveTemplate = { newTemplate ->
+            templateManager.addTemplate(newTemplate)
+            templates = templateManager.getTemplates()
+        }
+    )
+
+    ManageTemplatesModal(
+        visible = manageTemplatesModalVisible,
+        templates = templates,
+        currency = baseCurrency,
+        dismiss = { manageTemplatesModalVisible = false },
+        onDeleteTemplate = { id ->
+            templateManager.deleteTemplate(id)
+            templates = templateManager.getTemplates()
+        },
+        onResetDefaults = {
+            templateManager.resetToDefaults()
+            templates = templateManager.getTemplates()
+        }
+    )
 }
 
 @Suppress("LongParameterList")
@@ -329,6 +387,10 @@ fun HomeLazyColumn(
     onHiddenIncomeClick: () -> Unit,
     onSkipTransaction: (Transaction) -> Unit,
     onSkipAllTransactions: (List<Transaction>) -> Unit,
+    templates: List<QuickTemplate> = QuickTemplate.DEFAULT_TEMPLATES,
+    onTemplateClick: (QuickTemplate) -> Unit = {},
+    onAddTemplateClick: () -> Unit = {},
+    onManageTemplatesClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val ivyContext = ivyWalletCtx()
@@ -384,6 +446,16 @@ fun HomeLazyColumn(
             Spacer(Modifier.height(16.dp))
 
             TransactionsDividerLine()
+        }
+
+        item {
+            QuickTemplatesRow(
+                templates = templates,
+                currency = baseData.baseCurrency,
+                onTemplateClick = onTemplateClick,
+                onAddTemplateClick = onAddTemplateClick,
+                onManageTemplatesClick = onManageTemplatesClick
+            )
         }
 
         item {
