@@ -10,6 +10,7 @@ import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ivy.base.legacy.Theme
+import com.ivy.base.legacy.ThemeAccent
 import com.ivy.design.api.IvyDesign
 import com.ivy.design.l0_system.*
 import com.ivy.ui.R
@@ -115,10 +116,14 @@ abstract class IvyWalletDesign : IvyDesign {
 
     @Deprecated("Old design system. Use `:ivy-design` and Material3")
     override fun colors(theme: Theme, isDarkModeEnabled: Boolean): IvyColors {
-        val currentAccent = context().accent
-        val accentPrimary = Color(currentAccent.colorHex)
-        val accentLight = Color(currentAccent.lightHex)
-        val accentDark = Color(currentAccent.darkHex)
+        return colors(theme, context().accent, isDarkModeEnabled)
+    }
+
+    @Deprecated("Old design system. Use `:ivy-design` and Material3")
+    override fun colors(theme: Theme, accent: ThemeAccent, isDarkModeEnabled: Boolean): IvyColors {
+        val accentPrimary = Color(accent.colorHex)
+        val accentLight = Color(accent.lightHex)
+        val accentDark = Color(accent.darkHex)
 
         return when (theme) {
             Theme.LIGHT -> object : IvyColors {
@@ -191,10 +196,11 @@ abstract class IvyWalletDesign : IvyDesign {
             }
 
             Theme.AUTO -> if (isDarkModeEnabled) {
-                colors(Theme.DARK, true)
+                colors(Theme.DARK, accent, true)
             } else {
                 colors(
                     Theme.LIGHT,
+                    accent,
                     false
                 )
             }

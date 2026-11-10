@@ -28,6 +28,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -159,7 +160,8 @@ class RootActivity : AppCompatActivity(), RootScreen {
                     ivyDesign = appDesign(ivyContext),
                     systemDarkTheme = isSystemInDarkTheme
                 ),
-                isTrueBlack = appDesign(ivyContext).context().theme == Theme.AMOLED_DARK
+                isTrueBlack = appDesign(ivyContext).context().theme == Theme.AMOLED_DARK,
+                accentColor = Color(ivyContext.accent.colorHex)
             ) {
                 dateTimePicker.Content()
             }

@@ -353,7 +353,7 @@ private fun CurrencyItemCard(
             .fillMaxWidth()
             .clip(UI.shapes.r4)
             .background(
-                color = if (selected) Ivy else UI.colors.medium,
+                color = if (selected) UI.colors.primary else UI.colors.medium,
                 shape = UI.shapes.r4
             )
             .clickable {

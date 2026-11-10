@@ -119,7 +119,7 @@ private fun MonthButton(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val monthColor = Ivy
+    val monthColor = UI.colors.primary
 
     val medium = UI.colors.medium
     val rFull = UI.shapes.rFull

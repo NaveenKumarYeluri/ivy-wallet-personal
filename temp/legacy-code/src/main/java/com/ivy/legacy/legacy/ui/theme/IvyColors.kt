@@ -95,7 +95,14 @@ val GradientGreen = Gradient(Green, Color(0xFF49F2C8))
 val GradientOrangeRevert = Gradient(Color(0xFFF2CD9E), Orange)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val GradientIvy = Gradient(Ivy, Color(0xFFAA99FF))
+val GradientPrimary: Gradient
+    @Composable
+    get() = Gradient(UI.colors.primary, UI.colors.primary1)
+
+@Deprecated("Old design system. Use `:ivy-design` and Material3")
+val GradientIvy: Gradient
+    @Composable
+    get() = GradientPrimary
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 fun Modifier.gradientCutBackgroundTop(

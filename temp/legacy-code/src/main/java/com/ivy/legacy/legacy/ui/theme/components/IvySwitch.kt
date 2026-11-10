@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ivy.design.l0_system.UI
@@ -24,10 +25,11 @@ import com.ivy.wallet.ui.theme.Green
 fun IvySwitch(
     modifier: Modifier = Modifier,
     enabled: Boolean,
+    activeColor: Color = UI.colors.primary,
     onEnabledChange: (checked: Boolean) -> Unit
 ) {
     val color by animateColorAsState(
-        targetValue = if (enabled) Green else Gray,
+        targetValue = if (enabled) activeColor else Gray,
         animationSpec = springBounce()
     )
 

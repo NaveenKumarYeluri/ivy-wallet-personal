@@ -620,7 +620,7 @@ fun TypeAmountCurrency(
                     icon = R.drawable.ic_transfer,
                     gradient = GradientIvy,
                     iconTint = White,
-                    textColor = Ivy
+                    textColor = UI.colors.primary
                 )
             }
         }

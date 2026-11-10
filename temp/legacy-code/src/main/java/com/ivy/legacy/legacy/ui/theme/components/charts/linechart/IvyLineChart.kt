@@ -109,7 +109,7 @@ private fun DrawScope.drawTappedPoint(
         val radius = 8.dp.toPx()
 
         drawCircle(
-            color = Ivy,
+            color = UI.colors.primary,
             radius = radius,
             center = Offset(
                 x = calculateXCoordinate(

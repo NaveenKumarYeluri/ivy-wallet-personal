@@ -203,9 +203,9 @@ private fun NumberView(
         modifier = Modifier
             .size(48.dp)
             .clip(CircleShape)
-            .border(2.dp, if (selected) Ivy else UI.colors.medium, CircleShape)
+            .border(2.dp, if (selected) UI.colors.primary else UI.colors.medium, CircleShape)
             .thenIf(selected) {
-                background(Ivy, CircleShape)
+                background(UI.colors.primary, CircleShape)
             }
             .clickable {
                 onClick(number)

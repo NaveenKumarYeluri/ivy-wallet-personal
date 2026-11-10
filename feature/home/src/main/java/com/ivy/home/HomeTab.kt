@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -470,8 +471,8 @@ private fun FilterChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val backgroundColor = if (isSelected) UI.colors.pureInverse else UI.colors.medium
-    val textColor = if (isSelected) UI.colors.pure else UI.colors.pureInverse
+    val backgroundColor = if (isSelected) UI.colors.primary else UI.colors.medium
+    val textColor = if (isSelected) Color.White else UI.colors.pureInverse
 
     Text(
         modifier = modifier

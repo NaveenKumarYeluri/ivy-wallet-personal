@@ -193,6 +193,11 @@ val Transparent = Color(0x00000000)
 val GradientGreen = Gradient(Green, Color(0xFF49F2C8))
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
+val GradientPrimary: Gradient
+    @Composable
+    get() = Gradient(UI.colors.primary, UI.colors.primary1)
+
+@Deprecated("Old design system. Use `:ivy-design` and Material3")
 @Immutable
 data class Gradient(
     val startColor: Color,
@@ -211,6 +216,10 @@ data class Gradient(
         @Deprecated("Old design system. Use `:ivy-design` and Material3")
         @Composable
         fun black() = Gradient(UI.colors.gray, UI.colors.pureInverse)
+
+        @Deprecated("Old design system. Use `:ivy-design` and Material3")
+        @Composable
+        fun primary() = Gradient(UI.colors.primary, UI.colors.primary1)
     }
 
     @Deprecated("Old design system. Use `:ivy-design` and Material3")
