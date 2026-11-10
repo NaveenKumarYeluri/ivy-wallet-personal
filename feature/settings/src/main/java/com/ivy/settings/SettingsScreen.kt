@@ -49,6 +49,7 @@ import com.ivy.design.utils.thenIf
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.rootScreen
 import com.ivy.legacy.utils.drawColoredShadow
+import com.ivy.navigation.ExchangeRatesScreen
 import com.ivy.navigation.FeaturesScreen
 import com.ivy.navigation.ImportScreen
 import com.ivy.navigation.navigation
@@ -309,6 +310,15 @@ private fun BoxWithConstraintsScope.UI(
             Spacer(Modifier.height(12.dp))
 
             val nav = navigation()
+
+            SettingsDefaultButton(
+                icon = R.drawable.ic_vue_money_coins,
+                iconPadding = 6.dp,
+                text = "Currency Converter & Rates",
+                description = "Convert currencies & view exchange rates"
+            ) {
+                nav.navigateTo(ExchangeRatesScreen)
+            }
 
             if (languageOptionVisible) {
                 SettingsDefaultButton(

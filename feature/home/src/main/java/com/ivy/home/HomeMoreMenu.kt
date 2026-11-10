@@ -62,6 +62,7 @@ import com.ivy.legacy.utils.toDensityPx
 import com.ivy.legacy.utils.verticalSwipeListener
 import com.ivy.navigation.BudgetScreen
 import com.ivy.navigation.CategoriesScreen
+import com.ivy.navigation.ExchangeRatesScreen
 import com.ivy.navigation.IvyPreview
 import com.ivy.navigation.LoansScreen
 import com.ivy.navigation.PlannedPaymentsScreen
@@ -408,6 +409,15 @@ private fun QuickAccess(
                 label = stringResource(R.string.planned_payments)
             ) {
                 nav.navigateTo(PlannedPaymentsScreen)
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            MoreMenuButton(
+                icon = R.drawable.ic_vue_money_coins,
+                label = "Converter"
+            ) {
+                nav.navigateTo(ExchangeRatesScreen)
             }
 
             Spacer(Modifier.weight(1f))
