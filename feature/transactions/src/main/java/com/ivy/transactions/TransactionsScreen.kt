@@ -105,13 +105,14 @@ fun BoxWithConstraintsScope.TransactionsScreen(screen: TransactionsScreen) {
     val uiState = viewModel.uiState()
 
     val view = LocalView.current
+    val isLight = UI.colors.isLight
     LaunchedEffect(Unit) {
         viewModel.start(screen)
 
         nav.onBackPressed[screen] = {
             setStatusBarDarkTextCompat(
                 view = view,
-                darkText = UI.colors.isLight
+                darkText = isLight
             )
             false
         }

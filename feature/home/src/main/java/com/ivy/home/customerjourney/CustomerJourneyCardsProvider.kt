@@ -6,7 +6,7 @@ import com.ivy.base.model.TransactionType
 import com.ivy.base.time.TimeProvider
 import com.ivy.data.db.dao.read.PlannedPaymentRuleDao
 import com.ivy.data.repository.TransactionRepository
-import com.ivy.design.l0_system.Gradient
+import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.design.l0_system.Green
 import com.ivy.design.l0_system.GreenLight
 import com.ivy.design.l0_system.Ivy
