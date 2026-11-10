@@ -32,7 +32,7 @@ fun ProgressBar(
                 drawRect(
                     color = when {
                         percent <= 0.25 -> {
-                            if (positiveProgress) Red else Green
+                            if (positiveProgress) Red else UI.colors.primary
                         }
                         percent <= 0.50 -> {
                             if (positiveProgress) Orange else UI.colors.primary
@@ -40,7 +40,7 @@ fun ProgressBar(
                         percent <= 0.75 -> {
                             if (positiveProgress) UI.colors.primary else Orange
                         }
-                        else -> if (positiveProgress) Green else Red
+                        else -> if (positiveProgress) UI.colors.primary else Red
                     },
                     size = size.copy(
                         width = (size.width * percent).toFloat()

@@ -195,7 +195,11 @@ private fun BoxWithConstraintsScope.UI(
                 .padding(vertical = 8.dp),
             text = item.account.name.value,
             style = UI.typo.b1.style(
-                color = item.account.color.value.toComposeColor(),
+                color = if (item.account.color.value == Green.toArgb()) {
+                UI.colors.primary
+            } else {
+                item.account.color.value.toComposeColor()
+            },
                 fontWeight = FontWeight.Bold
             )
         )
@@ -221,11 +225,14 @@ private fun AccountCard(
             )
     ) {
         val account = accountData.account
-        val contrastColor = findContrastTextColor(account.color.value.toComposeColor())
+        val isLegacyGreen = account.color.value == Green.toArgb()
+        val accountColor = if (isLegacyGreen) UI.colors.primary else account.color.value.toComposeColor()
+        val contrastColor = findContrastTextColor(accountColor)
         val currency = account.asset.code
 
         AccountHeader(
             accountData = accountData,
+            accountColor = accountColor,
             currency = currency,
             baseCurrency = baseCurrency,
             contrastColor = contrastColor,
@@ -251,6 +258,7 @@ private fun AccountCard(
 @Composable
 private fun AccountHeader(
     accountData: AccountData,
+    accountColor: Color,
     currency: String,
     baseCurrency: String,
     contrastColor: Color,
@@ -261,7 +269,7 @@ private fun AccountHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(account.color.value.toComposeColor(), UI.shapes.r4Top)
+            .background(accountColor, UI.shapes.r4Top)
     ) {
         Spacer(Modifier.height(16.dp))
 
@@ -292,7 +300,7 @@ private fun AccountHeader(
                 Text(
                     text = stringResource(R.string.excluded),
                     style = UI.typo.c.style(
-                        color = account.color.value.toComposeColor().dynamicContrast()
+                        color = accountColor.dynamicContrast()
                     )
                 )
             }
@@ -324,7 +332,7 @@ private fun AccountHeader(
                         onBalanceClick()
                     }
                     .testTag("baseCurrencyEquivalent"),
-                textColor = account.color.value.toComposeColor().dynamicContrast(),
+                textColor = accountColor.dynamicContrast(),
                 currency = baseCurrency,
                 balance = accountData.balanceBaseCurrency!!,
                 currencyUpfront = false

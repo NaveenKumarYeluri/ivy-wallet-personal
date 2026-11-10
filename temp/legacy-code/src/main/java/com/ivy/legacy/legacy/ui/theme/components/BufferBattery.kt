@@ -76,7 +76,7 @@ fun BufferBattery(
                 drawRect(
                     color = when {
                         bufferExceededPercent <= 0.25 -> {
-                            Green
+                            UI.colors.primary
                         }
 
                         bufferExceededPercent <= 0.50 -> {

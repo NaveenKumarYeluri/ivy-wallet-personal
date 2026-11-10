@@ -51,6 +51,8 @@ import com.ivy.legacy.utils.rememberInteractionSource
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
+import com.ivy.wallet.ui.theme.findContrastTextColor
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.White
 import com.ivy.wallet.ui.theme.components.IntervalPickerRow
@@ -211,7 +213,8 @@ private fun RowScope.TimesSelectorButton(
     onClick: () -> Unit
 ) {
     val rFull = UI.shapes.rFull
-    val gradientBrush = GradientIvy.asHorizontalBrush()
+    val gradientBrush = GradientPrimary.asHorizontalBrush()
+    val contrastColor = findContrastTextColor(GradientPrimary.startColor)
 
     Text(
         modifier = Modifier
@@ -227,7 +230,7 @@ private fun RowScope.TimesSelectorButton(
             .padding(vertical = 8.dp),
         text = label,
         style = UI.typo.b2.style(
-            color = if (selected) White else Gray,
+            color = if (selected) contrastColor else Gray,
             fontWeight = FontWeight.ExtraBold,
             textAlign = TextAlign.Center
         )

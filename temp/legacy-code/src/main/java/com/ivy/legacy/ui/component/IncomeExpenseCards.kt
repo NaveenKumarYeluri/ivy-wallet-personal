@@ -30,6 +30,7 @@ import com.ivy.legacy.utils.format
 import com.ivy.ui.R
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.Gradient
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.MediumBlack
 import com.ivy.wallet.ui.theme.MediumWhite
@@ -183,19 +184,21 @@ private fun RowScope.HeaderCard(
         Spacer(Modifier.height(24.dp))
 
         if (addButtonText != null) {
-            val addButtonBackground = if (isIncome) Green else contrastColor
+            val addButtonGradient = if (isIncome) GradientPrimary else Gradient.solid(contrastColor)
+            val buttonTextColor = if (isIncome) findContrastTextColor(GradientPrimary.startColor) else findContrastTextColor(contrastColor)
             IvyButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
                     .align(Alignment.CenterHorizontally),
                 text = addButtonText,
-                shadowAlpha = 0.1f,
-                backgroundGradient = Gradient.solid(addButtonBackground),
+                shadowAlpha = 0.15f,
+                backgroundGradient = addButtonGradient,
                 textStyle = UI.typo.b2.style(
-                    color = findContrastTextColor(addButtonBackground),
+                    color = buttonTextColor,
                     fontWeight = FontWeight.Bold
                 ).copy(fontSize = 12.sp),
+                iconTint = buttonTextColor,
                 wrapContentMode = false
             ) {
                 onAddClick()

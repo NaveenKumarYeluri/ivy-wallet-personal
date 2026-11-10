@@ -68,6 +68,7 @@ import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Red
 import com.ivy.wallet.ui.theme.White
+import com.ivy.wallet.ui.theme.findContrastTextColor
 import com.ivy.wallet.ui.theme.components.IvySwitch
 import com.ivy.wallet.ui.theme.components.IvyToolbar
 import com.ivy.wallet.ui.theme.modal.ChooseStartDateOfMonthModal
@@ -914,13 +915,14 @@ private fun ExportCSV(
 private fun SettingsPrimaryButton(
     @DrawableRes icon: Int,
     text: String,
-    hasShadow: Boolean = false,
+    hasShadow: Boolean = true,
     backgroundGradient: Gradient = Gradient.solid(UI.colors.medium),
-    textColor: Color = White,
+    textColor: Color? = null,
     iconPadding: Dp = 0.dp,
     description: String? = null,
     onClick: () -> Unit
 ) {
+    val contrastColor = textColor ?: findContrastTextColor(backgroundGradient.startColor)
     SettingsButtonRow(
         hasShadow = hasShadow,
         backgroundGradient = backgroundGradient,
@@ -930,7 +932,7 @@ private fun SettingsPrimaryButton(
 
         IvyIconScaled(
             icon = icon,
-            tint = textColor,
+            tint = contrastColor,
             iconScale = IconScale.M,
             padding = iconPadding
         )
@@ -945,7 +947,7 @@ private fun SettingsPrimaryButton(
             Text(
                 text = text,
                 style = UI.typo.b2.style(
-                    color = textColor,
+                    color = contrastColor,
                     fontWeight = FontWeight.Bold,
                 )
             )
@@ -954,7 +956,7 @@ private fun SettingsPrimaryButton(
                     modifier = Modifier.padding(end = 8.dp),
                     text = description,
                     style = UI.typo.nB2.style(
-                        color = Gray,
+                        color = contrastColor.copy(alpha = 0.8f),
                         fontWeight = FontWeight.Normal
                     ).copy(fontSize = 14.sp)
                 )

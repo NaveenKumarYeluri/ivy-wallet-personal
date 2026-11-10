@@ -17,6 +17,7 @@ import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.GradientRed
 import com.ivy.wallet.ui.theme.White
+import com.ivy.wallet.ui.theme.findContrastTextColor
 import com.ivy.wallet.ui.theme.components.IvyButton
 import com.ivy.wallet.ui.theme.components.IvyCircleButton
 import com.ivy.wallet.ui.theme.components.IvyOutlinedButton
@@ -174,11 +175,17 @@ fun ModalPositiveButton(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
+    val contrastColor = findContrastTextColor(GradientPrimary.startColor)
     IvyButton(
         modifier = modifier,
         text = text,
         backgroundGradient = GradientPrimary,
         iconStart = iconStart,
+        iconTint = if (enabled) contrastColor else White,
+        textStyle = UI.typo.b2.style(
+            color = if (enabled) contrastColor else White,
+            fontWeight = FontWeight.Bold
+        ),
         onClick = onClick,
         enabled = enabled
     )

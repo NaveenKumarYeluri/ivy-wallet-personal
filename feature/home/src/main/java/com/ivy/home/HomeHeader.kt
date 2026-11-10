@@ -53,6 +53,7 @@ import com.ivy.navigation.navigation
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientGreen
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.White
@@ -193,6 +194,8 @@ private fun HeaderStickyRow(
                 },
             ),
             iconStart = R.drawable.ic_calendar,
+            iconTint = UI.colors.primary,
+            borderColor = UI.colors.primary,
             text = period.toDisplayShort(
                 startDateOfMonth = ivyWalletCtx().startDayOfMonth,
                 timeConverter = LocalTimeConverter.current,
@@ -317,7 +320,7 @@ private fun CashFlowInsightsCard(
                     ),
                     style = UI.typo.b2.style(
                         fontWeight = FontWeight.Bold,
-                        color = if (isPositive) Green else Gray
+                        color = if (isPositive) UI.colors.primary else UI.colors.gray
                     )
                 )
 
@@ -326,12 +329,12 @@ private fun CashFlowInsightsCard(
                     Text(
                         modifier = Modifier
                             .clip(UI.shapes.rFull)
-                            .background(Green.copy(alpha = 0.15f))
+                            .background(UI.colors.primary.copy(alpha = 0.15f))
                             .padding(horizontal = 8.dp, vertical = 2.dp),
                         text = "$savingsRate% saved",
                         style = UI.typo.c.style(
                             fontWeight = FontWeight.Bold,
-                            color = Green
+                            color = UI.colors.primary
                         )
                     )
                 }
@@ -373,7 +376,7 @@ private fun IncomeExpenses(
         HeaderCard(
             percentVisible = percentExpanded,
             icon = R.drawable.ic_income,
-            backgroundGradient = GradientGreen,
+            backgroundGradient = GradientPrimary,
             textColor = White,
             label = stringResource(R.string.income),
             currency = currency,

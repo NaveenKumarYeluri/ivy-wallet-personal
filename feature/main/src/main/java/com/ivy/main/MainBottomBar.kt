@@ -372,7 +372,7 @@ private fun AddIncomeButton(
             .size(FAB_BUTTON_SIZE)
             .zIndex(200f),
         icon = R.drawable.ic_income,
-        backgroundGradient = GradientGreen,
+        backgroundGradient = GradientPrimary,
         tint = White,
         onClick = onAddIncome
     )

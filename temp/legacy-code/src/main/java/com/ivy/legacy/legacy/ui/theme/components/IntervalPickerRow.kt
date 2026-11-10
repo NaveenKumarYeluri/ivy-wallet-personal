@@ -34,6 +34,7 @@ import com.ivy.legacy.utils.selectEndTextFieldValue
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientIvy
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.White
 
 private const val RepeatIntervalCharLimit = 5
@@ -62,7 +63,7 @@ fun IntervalPickerRow(
             modifier = Modifier
                 .background(
                     brush = if (validInput) {
-                        GradientIvy.asHorizontalBrush()
+                        GradientPrimary.asHorizontalBrush()
                     } else {
                         Gradient
                             .solid(UI.colors.medium)

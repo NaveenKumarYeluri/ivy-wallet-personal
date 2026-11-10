@@ -240,7 +240,7 @@ private fun Toolbar(
                 Text(
                     text = stringResource(R.string.you_owe, totalOweAmount),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = UI.colors.red,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -248,7 +248,7 @@ private fun Toolbar(
                 Text(
                     text = stringResource(R.string.you_are_owed, totalOwedAmount),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = UI.colors.primary,
                     fontWeight = FontWeight.Bold
                 )
             }

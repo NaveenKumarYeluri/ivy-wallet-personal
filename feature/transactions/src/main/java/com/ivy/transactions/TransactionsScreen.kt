@@ -73,6 +73,7 @@ import com.ivy.ui.R
 import com.ivy.ui.rememberScrollPositionListState
 import com.ivy.wallet.domain.pure.data.IncomeExpensePair
 import com.ivy.wallet.ui.theme.Gray
+import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.GreenDark
 import com.ivy.wallet.ui.theme.components.BalanceRow
 import com.ivy.wallet.ui.theme.components.BalanceRowMedium
@@ -263,7 +264,13 @@ private fun BoxWithConstraintsScope.UI(
     onChoosePeriodModal: (ChoosePeriodModalData?) -> Unit,
 ) {
     val ivyContext = ivyWalletCtx()
-    val itemColor = (account?.color ?: category?.color?.value)?.toComposeColor() ?: Gray
+    val rawColorInt = account?.color ?: category?.color?.value
+    val isLegacyGreen = rawColorInt == Green.toArgb()
+    val itemColor = if (isLegacyGreen) {
+        UI.colors.primary
+    } else {
+        rawColorInt?.toComposeColor() ?: Gray
+    }
 
     var categoryModalData: CategoryModalData? by remember { mutableStateOf(null) }
     var accountModalData: AccountModalData? by remember { mutableStateOf(null) }

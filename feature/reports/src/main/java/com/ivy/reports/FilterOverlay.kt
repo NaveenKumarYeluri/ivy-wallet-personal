@@ -61,6 +61,7 @@ import com.ivy.legacy.utils.capitalizeLocal
 import com.ivy.legacy.utils.springBounce
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.GradientPrimary
+import com.ivy.wallet.ui.theme.findContrastTextColor
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.GreenDark
 import com.ivy.wallet.ui.theme.GreenLight
@@ -308,9 +309,15 @@ fun BoxWithConstraintsScope.FilterOverlay(
 
         Spacer(Modifier.weight(1f))
 
+        val applyFilterContrast = findContrastTextColor(GradientPrimary.startColor)
         IvyButton(
             text = stringResource(R.string.apply_filter),
             iconStart = R.drawable.ic_filter_xs,
+            iconTint = applyFilterContrast,
+            textStyle = UI.typo.b2.style(
+                color = applyFilterContrast,
+                fontWeight = FontWeight.Bold
+            ),
             backgroundGradient = GradientPrimary,
             padding = 10.dp,
         ) {
@@ -641,6 +648,8 @@ private fun PeriodFilter(
             .fillMaxWidth()
             .padding(horizontal = 24.dp),
         iconStart = R.drawable.ic_calendar,
+        iconTint = if (filter?.period != null) UI.colors.primary else UI.colors.pureInverse,
+        borderColor = if (filter?.period != null) UI.colors.primary else UI.colors.medium,
         text = filter?.period?.toDisplayLong(
             startDateOfMonth = ivyWalletCtx().startDayOfMonth,
             timeProvider = LocalTimeProvider.current,

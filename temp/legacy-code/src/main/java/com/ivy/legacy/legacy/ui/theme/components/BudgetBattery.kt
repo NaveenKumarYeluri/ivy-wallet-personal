@@ -91,7 +91,7 @@ fun BudgetBattery(
                 drawRect(
                     color = when {
                         percentSpent <= 0.25 -> {
-                            Green
+                            UI.colors.primary
                         }
 
                         percentSpent <= 0.50 -> {

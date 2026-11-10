@@ -379,6 +379,7 @@ private fun Toolbar(
         IvyOutlinedButton(
             text = stringResource(R.string.export),
             iconTint = UI.colors.primary,
+            borderColor = UI.colors.primary,
             textColor = UI.colors.primary,
             solidBackground = true,
             padding = 8.dp,

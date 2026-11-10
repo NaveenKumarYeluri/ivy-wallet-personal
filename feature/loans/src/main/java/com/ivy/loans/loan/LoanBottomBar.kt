@@ -122,9 +122,14 @@ private fun RowScope.Tab(
     Row(
         modifier = Modifier
             .weight(1f)
+            .padding(horizontal = 8.dp, vertical = 6.dp)
             .clip(UI.shapes.rFull)
+            .background(
+                if (selected) selectedColor.copy(alpha = 0.15f) else Color.Transparent,
+                UI.shapes.rFull
+            )
             .clickable(onClick = onClick)
-            .padding(top = 12.dp, bottom = 16.dp)
+            .padding(vertical = 10.dp)
             .testTag(name.lowercase()),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
@@ -134,17 +139,15 @@ private fun RowScope.Tab(
             tint = if (selected) selectedColor else UI.colors.pureInverse
         )
 
-        if (selected) {
-            Spacer(modifier = Modifier.width(4.dp))
+        Spacer(modifier = Modifier.width(6.dp))
 
-            Text(
-                text = name,
-                style = UI.typo.c.style(
-                    fontWeight = FontWeight.Bold,
-                    color = selectedColor
-                )
+        Text(
+            text = name,
+            style = UI.typo.c.style(
+                fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Bold,
+                color = if (selected) selectedColor else UI.colors.pureInverse
             )
-        }
+        )
     }
 }
 
