@@ -881,7 +881,28 @@ class TransactionsViewModel @Inject constructor(
                     initForUnspecifiedCategory()
                 }
 
-                else -> error("no id provided")
+                screen.transactions.isNotEmpty() -> {
+                    val filtered = if (screen.transactionType != null) {
+                        screen.transactions.filter { it.type == screen.transactionType }
+                    } else {
+                        screen.transactions
+                    }
+                    initWithTransactions.value = true
+                    history.value = trnsWithDateDivsAct(
+                        LegacyTrnsWithDateDivsAct.Input(
+                            baseCurrency = baseCurrency.value,
+                            transactions = filtered
+                        )
+                    ).toImmutableList()
+                }
+
+                accounts.value.isNotEmpty() -> {
+                    initForAccount(accounts.value.first().id)
+                }
+
+                else -> {
+                    initForUnspecifiedCategory()
+                }
             }
         }
     }

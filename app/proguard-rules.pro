@@ -21,3 +21,27 @@
 # R8 full mode strips generic signatures from return types if not kept.
 -if interface * { @retrofit2.http.* public *** *(...); }
 -keep,allowoptimization,allowshrinking,allowobfuscation class <3>
+
+# Keval expression evaluator (calculator)
+-dontwarn com.notkamui.keval.**
+-keep class com.notkamui.keval.** { *; }
+
+# Kotlinx Serialization
+-keepattributes *Annotation*,InnerClasses,EnclosingMethod
+-keepclassmembers class * {
+    @kotlinx.serialization.SerialName <fields>;
+}
+
+# Room Database & DAOs
+-dontwarn androidx.room.**
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao class * { *; }
+
+# OpenCSV
+-dontwarn com.opencsv.**
+-keep class com.opencsv.** { *; }
+
+# Arrow & Coroutines
+-dontwarn arrow.**
+-keep class arrow.** { *; }

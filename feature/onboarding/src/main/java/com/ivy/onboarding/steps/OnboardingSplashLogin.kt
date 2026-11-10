@@ -140,7 +140,6 @@ fun BoxWithConstraintsScope.OnboardingSplashLogin(
             .fillMaxSize()
             .background(UI.colors.pure)
             .systemBarsPadding()
-            .navigationBarsPadding()
     ) {
         Spacer(Modifier.height(spacerTop))
 

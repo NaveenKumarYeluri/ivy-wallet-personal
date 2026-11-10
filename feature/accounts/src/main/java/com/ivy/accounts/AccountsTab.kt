@@ -99,7 +99,7 @@ private fun BoxWithConstraintsScope.UI(
                 sensitivity = 200,
                 state = rememberSwipeListenerState(),
                 onSwipeLeft = {
-                    ivyContext.selectMainTab(com.ivy.legacy.data.model.MainTab.HOME)
+                    // Rightmost tab: ignore left swipe
                 },
                 onSwipeRight = {
                     ivyContext.selectMainTab(com.ivy.legacy.data.model.MainTab.HOME)

@@ -27,6 +27,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicLong
@@ -173,9 +174,7 @@ class RootViewModel @Inject constructor(
         if (userInactiveJob != null && userInactiveJob!!.isActive) return
 
         userInactiveJob = viewModelScope.launch(Dispatchers.IO) {
-            while (userInactiveTime.get() < USER_INACTIVITY_TIME_LIMIT &&
-                userInactiveJob != null && !userInactiveJob?.isCancelled!!
-            ) {
+            while (userInactiveTime.get() < USER_INACTIVITY_TIME_LIMIT && isActive) {
                 delay(1000)
                 userInactiveTime.incrementAndGet()
             }
@@ -183,8 +182,6 @@ class RootViewModel @Inject constructor(
             if (!isAppLocked()) {
                 lockApp()
             }
-
-            cancel()
         }
     }
 

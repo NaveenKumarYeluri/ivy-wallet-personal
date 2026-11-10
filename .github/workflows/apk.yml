@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build Debug APK
+    name: Build APKs
     runs-on: ubuntu-latest
 
     steps:
@@ -30,8 +30,15 @@ jobs:
       - name: Make Gradlew Executable
         run: chmod +x ./gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Build Optimized Release and Debug APKs
+        run: ./gradlew assembleRelease assembleDebug --stacktrace
+
+      - name: Upload Optimized Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: IvyWallet-Personal-Optimized.apk
+          path: app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4

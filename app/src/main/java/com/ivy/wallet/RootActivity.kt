@@ -9,7 +9,10 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.view.WindowManager
-import android.widget.Toast
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import com.ivy.base.legacy.SharedPrefs
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -82,6 +85,13 @@ class RootActivity : AppCompatActivity(), RootScreen {
 
     @Inject
     lateinit var dateTimePicker: DateTimePicker
+
+    @Inject
+    lateinit var sharedPrefs: SharedPrefs
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* result handled */ }
 
     private lateinit var createFileLauncher: ActivityResultLauncher<String>
     private lateinit var onFileCreated: (fileUri: Uri) -> Unit
@@ -161,9 +171,23 @@ class RootActivity : AppCompatActivity(), RootScreen {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setupDatePicker()
         setupTimePicker()
+        checkNotificationPermission()
         AddTransactionWidget.updateBroadcast(this)
         AddTransactionWidgetCompact.updateBroadcast(this)
         WalletBalanceWidgetReceiver.updateBroadcast(this)
+    }
+
+    private fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val showNotifications = sharedPrefs.getBoolean(SharedPrefs.SHOW_NOTIFICATIONS, true)
+            if (showNotifications && ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
     }
 
     // Since targetSdk 36 the system no longer calls Activity.onBackPressed(),
@@ -210,24 +234,6 @@ class RootActivity : AppCompatActivity(), RootScreen {
             datePicker.show(supportFragmentManager, "datePicker")
             datePicker.addOnPositiveButtonClickListener {
                 onDatePicked(LocalDate.ofEpochDay(it / MILLISECONDS_IN_DAY))
-            }
-
-            if (minDate != null) {
-                datePicker.addOnCancelListener {
-                    onDatePicked(minDate)
-                }
-            }
-
-            if (maxDate != null) {
-                datePicker.addOnCancelListener {
-                    onDatePicked(maxDate)
-                }
-            }
-
-            if (initialDate != null) {
-                datePicker.addOnCancelListener {
-                    onDatePicked(initialDate)
-                }
             }
         }
     }

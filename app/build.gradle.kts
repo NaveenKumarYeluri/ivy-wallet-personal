@@ -34,10 +34,19 @@ android {
         }
 
         create("release") {
-            storeFile = file("../sign.jks")
-            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
-            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
-            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            val storePass = System.getenv("SIGNING_STORE_PASSWORD")
+            if (storePass.isNullOrEmpty()) {
+                // Fallback for personal / CI builds without custom signing secrets
+                storeFile = file("../debug.jks")
+                storePassword = "IVY7834!DEbug"
+                keyAlias = "debug"
+                keyPassword = "IVY7834!DEbug"
+            } else {
+                storeFile = file("../sign.jks")
+                storePassword = storePass
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            }
         }
     }
 
@@ -104,6 +113,19 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/*.kotlin_module",
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE*",
+                "META-INF/NOTICE*"
+            )
+        }
     }
 
     lint {

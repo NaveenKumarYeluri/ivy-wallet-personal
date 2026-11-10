@@ -2,35 +2,49 @@ package com.ivy.home
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ivy.base.legacy.Theme
 import com.ivy.base.legacy.Transaction
 import com.ivy.base.legacy.TransactionHistoryItem
 import com.ivy.base.legacy.stringRes
+import com.ivy.base.model.TransactionType
 import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.api.LocalTimeFormatter
 import com.ivy.design.api.LocalTimeProvider
+import com.ivy.design.l0_system.UI
+import com.ivy.design.l0_system.style
 import com.ivy.frp.forward
 import com.ivy.frp.then2
 import com.ivy.home.Constants.SWIPE_HORIZONTAL_THRESHOLD
@@ -54,6 +68,7 @@ import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
 import com.ivy.ui.rememberScrollPositionListState
 import com.ivy.wallet.domain.data.IvyCurrency
+import com.ivy.wallet.domain.data.TransactionHistoryDateDivider
 import com.ivy.wallet.domain.pure.data.IncomeExpensePair
 import com.ivy.wallet.ui.theme.modal.BufferModal
 import com.ivy.wallet.ui.theme.modal.BufferModalData
@@ -63,6 +78,7 @@ import com.ivy.wallet.ui.theme.modal.CurrencyModal
 import com.ivy.wallet.ui.theme.modal.DeleteModal
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import java.math.BigDecimal
 
 @ExperimentalAnimationApi
@@ -118,7 +134,7 @@ fun BoxWithConstraintsScope.HomeUi(
                     ivyContext.selectMainTab(MainTab.ACCOUNTS)
                 },
                 onSwipeRight = {
-                    ivyContext.selectMainTab(MainTab.ACCOUNTS)
+                    // Leftmost tab: ignore right swipe
                 }
             )
     ) {
@@ -332,6 +348,12 @@ fun HomeLazyColumn(
     val timeProvider = LocalTimeProvider.current
     val timeConverter = LocalTimeConverter.current
     val timeFormatter = LocalTimeFormatter.current
+
+    var selectedFilter: TransactionType? by remember { mutableStateOf(null) }
+    val displayedHistory = remember(history, selectedFilter) {
+        filterHistoryByType(history, selectedFilter)
+    }
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -364,6 +386,13 @@ fun HomeLazyColumn(
         }
 
         item {
+            FilterChipsRow(
+                selectedFilter = selectedFilter,
+                onFilterSelected = { selectedFilter = it }
+            )
+        }
+
+        item {
             CustomerJourney(
                 customerJourneyCards = customerJourneyCards,
                 onDismiss = onDismiss
@@ -376,7 +405,7 @@ fun HomeLazyColumn(
             setUpcomingExpanded = setUpcomingExpanded,
             overdue = overdue,
             setOverdueExpanded = setOverdueExpanded,
-            history = history,
+            history = displayedHistory,
             onPayOrGet = onPayOrGet,
             emptyStateTitle = stringRes(R.string.no_transactions),
             emptyStateText = stringRes(
@@ -393,6 +422,102 @@ fun HomeLazyColumn(
             onSkipAllTransactions = onSkipAllTransactions
         )
     }
+}
+
+@Composable
+private fun FilterChipsRow(
+    selectedFilter: TransactionType?,
+    onFilterSelected: (TransactionType?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        FilterChip(
+            label = stringResource(R.string.all),
+            isSelected = selectedFilter == null,
+            onClick = { onFilterSelected(null) }
+        )
+
+        FilterChip(
+            label = stringResource(R.string.expenses),
+            isSelected = selectedFilter == TransactionType.EXPENSE,
+            onClick = { onFilterSelected(TransactionType.EXPENSE) }
+        )
+
+        FilterChip(
+            label = stringResource(R.string.income),
+            isSelected = selectedFilter == TransactionType.INCOME,
+            onClick = { onFilterSelected(TransactionType.INCOME) }
+        )
+
+        FilterChip(
+            label = stringResource(R.string.transfers),
+            isSelected = selectedFilter == TransactionType.TRANSFER,
+            onClick = { onFilterSelected(TransactionType.TRANSFER) }
+        )
+    }
+}
+
+@Composable
+private fun FilterChip(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val backgroundColor = if (isSelected) UI.colors.pureInverse else UI.colors.medium
+    val textColor = if (isSelected) UI.colors.pure else UI.colors.pureInverse
+
+    Text(
+        modifier = modifier
+            .clip(UI.shapes.rFull)
+            .background(backgroundColor)
+            .clickable { onClick() }
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+        text = label,
+        style = UI.typo.c.style(
+            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
+            color = textColor,
+            textAlign = TextAlign.Center
+        )
+    )
+}
+
+private fun filterHistoryByType(
+    history: ImmutableList<TransactionHistoryItem>,
+    filter: TransactionType?
+): ImmutableList<TransactionHistoryItem> {
+    if (filter == null) return history
+    val result = mutableListOf<TransactionHistoryItem>()
+    var currentDivider: TransactionHistoryDateDivider? = null
+    var hasItemsUnderCurrentDivider = false
+
+    for (item in history) {
+        when (item) {
+            is TransactionHistoryDateDivider -> {
+                currentDivider = item
+                hasItemsUnderCurrentDivider = false
+            }
+            is Transaction -> {
+                if (item.type == filter) {
+                    if (!hasItemsUnderCurrentDivider && currentDivider != null) {
+                        result.add(currentDivider)
+                        hasItemsUnderCurrentDivider = true
+                    }
+                    result.add(item)
+                }
+            }
+            else -> {
+                result.add(item)
+            }
+        }
+    }
+    return result.toImmutableList()
 }
 
 @ExperimentalAnimationApi

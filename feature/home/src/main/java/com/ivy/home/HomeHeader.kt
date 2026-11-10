@@ -266,26 +266,83 @@ fun CashFlowInfo(
 
         val cashflow = monthlyIncome - monthlyExpenses
         if (cashflow != 0.0 && !hideBalance) {
-            Spacer(Modifier.height(12.dp))
-
-            Text(
-                modifier = Modifier.padding(
-                    start = 24.dp,
-                ),
-                text = stringResource(
-                    R.string.cashflow,
-                    (if (cashflow > 0) "+" else ""),
-                    cashflow.format(currency),
-                    currency,
-                ),
-                style = UI.typo.nB2.style(
-                    color = if (cashflow < 0) Gray else Green,
-                ),
+            CashFlowInsightsCard(
+                cashflow = cashflow,
+                monthlyIncome = monthlyIncome,
+                currency = currency
             )
-
-            Spacer(Modifier.height(4.dp))
         } else {
             Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun CashFlowInsightsCard(
+    cashflow: Double,
+    monthlyIncome: Double,
+    currency: String,
+) {
+    val isPositive = cashflow >= 0
+    val now = java.time.LocalDate.now()
+    val daysRemaining = maxOf(1, now.lengthOfMonth() - now.dayOfMonth + 1)
+    val dailyAllowance = if (isPositive) cashflow / daysRemaining else 0.0
+    val savingsRate = if (monthlyIncome > 0 && isPositive) {
+        ((cashflow / monthlyIncome) * 100).toInt().coerceIn(0, 100)
+    } else {
+        null
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clip(UI.shapes.r3)
+            .background(UI.colors.medium)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(
+                        R.string.cashflow,
+                        (if (isPositive) "+" else ""),
+                        cashflow.format(currency),
+                        currency
+                    ),
+                    style = UI.typo.b2.style(
+                        fontWeight = FontWeight.Bold,
+                        color = if (isPositive) Green else Gray
+                    )
+                )
+
+                if (savingsRate != null && savingsRate > 0) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        modifier = Modifier
+                            .clip(UI.shapes.rFull)
+                            .background(Green.copy(alpha = 0.15f))
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                        text = "$savingsRate% saved",
+                        style = UI.typo.c.style(
+                            fontWeight = FontWeight.Bold,
+                            color = Green
+                        )
+                    )
+                }
+            }
+
+            if (isPositive && dailyAllowance > 0.0) {
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    text = "~${dailyAllowance.format(currency)} $currency / day left ($daysRemaining days left)",
+                    style = UI.typo.c.style(
+                        color = UI.colors.gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
         }
     }
 }
