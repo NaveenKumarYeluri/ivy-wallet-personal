@@ -199,13 +199,16 @@ private fun NumberView(
     selected: Boolean,
     onClick: (Int) -> Unit
 ) {
+    val primaryColor = UI.colors.primary
+    val mediumColor = UI.colors.medium
+
     Box(
         modifier = Modifier
             .size(48.dp)
             .clip(CircleShape)
-            .border(2.dp, if (selected) UI.colors.primary else UI.colors.medium, CircleShape)
+            .border(2.dp, if (selected) primaryColor else mediumColor, CircleShape)
             .thenIf(selected) {
-                background(UI.colors.primary, CircleShape)
+                background(primaryColor, CircleShape)
             }
             .clickable {
                 onClick(number)

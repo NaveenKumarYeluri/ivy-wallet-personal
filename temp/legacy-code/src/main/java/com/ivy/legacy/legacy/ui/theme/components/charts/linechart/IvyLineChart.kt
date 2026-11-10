@@ -99,7 +99,8 @@ private fun DrawScope.drawTappedPoint(
     chartWidth: Float,
     chartHeight: Float,
     minY: Double,
-    maxY: Double
+    maxY: Double,
+    pointColor: Color
 ) {
     tapEvent?.let {
         val tappedValue = functions
@@ -109,7 +110,7 @@ private fun DrawScope.drawTappedPoint(
         val radius = 8.dp.toPx()
 
         drawCircle(
-            color = UI.colors.primary,
+            color = pointColor,
             radius = radius,
             center = Offset(
                 x = calculateXCoordinate(
@@ -347,6 +348,7 @@ private fun IvyChart(
     }
 
     val xLabelColor = UI.colors.pureInverse
+    val tappedPointColor = UI.colors.primary
 
     Canvas(
         modifier = modifier
@@ -434,7 +436,8 @@ private fun IvyChart(
             chartWidth = chartWidth,
             chartHeight = chartHeight,
             minY = minY,
-            maxY = maxY
+            maxY = maxY,
+            pointColor = tappedPointColor
         )
     }
 }

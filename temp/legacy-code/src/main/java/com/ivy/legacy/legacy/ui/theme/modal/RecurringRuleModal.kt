@@ -211,6 +211,7 @@ private fun RowScope.TimesSelectorButton(
     onClick: () -> Unit
 ) {
     val rFull = UI.shapes.rFull
+    val gradientBrush = GradientIvy.asHorizontalBrush()
 
     Text(
         modifier = Modifier
@@ -221,7 +222,7 @@ private fun RowScope.TimesSelectorButton(
             }
             .padding(vertical = 8.dp)
             .thenIf(selected) {
-                background(GradientIvy.asHorizontalBrush(), rFull)
+                background(gradientBrush, rFull)
             }
             .padding(vertical = 8.dp),
         text = label,
