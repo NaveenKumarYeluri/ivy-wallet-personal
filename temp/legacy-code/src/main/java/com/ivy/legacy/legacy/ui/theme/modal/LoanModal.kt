@@ -115,8 +115,9 @@ fun BoxWithConstraintsScope.LoanModal(
     var amount by remember(modal) {
         mutableStateOf(modal?.loan?.amount ?: 0.0)
     }
-    var color by remember(modal) {
-        mutableStateOf(loan?.color?.let { Color(it) } ?: UI.colors.primary)
+    val defaultPrimaryColor = UI.colors.primary
+    var color by remember(modal, defaultPrimaryColor) {
+        mutableStateOf(loan?.color?.let { Color(it) } ?: defaultPrimaryColor)
     }
     var icon by remember(modal) {
         mutableStateOf(loan?.icon)

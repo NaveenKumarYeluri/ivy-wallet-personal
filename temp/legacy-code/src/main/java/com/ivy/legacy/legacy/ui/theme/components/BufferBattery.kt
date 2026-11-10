@@ -67,6 +67,8 @@ fun BufferBattery(
         else -> White
     }
 
+    val primaryColor = UI.colors.primary
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -76,11 +78,11 @@ fun BufferBattery(
                 drawRect(
                     color = when {
                         bufferExceededPercent <= 0.25 -> {
-                            UI.colors.primary
+                            primaryColor
                         }
 
                         bufferExceededPercent <= 0.50 -> {
-                            UI.colors.primary
+                            primaryColor
                         }
 
                         bufferExceededPercent <= 0.75 -> {

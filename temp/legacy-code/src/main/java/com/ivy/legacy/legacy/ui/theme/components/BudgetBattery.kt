@@ -82,6 +82,8 @@ fun BudgetBattery(
         else -> White
     }
 
+    val primaryColor = UI.colors.primary
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -91,11 +93,11 @@ fun BudgetBattery(
                 drawRect(
                     color = when {
                         percentSpent <= 0.25 -> {
-                            UI.colors.primary
+                            primaryColor
                         }
 
                         percentSpent <= 0.50 -> {
-                            UI.colors.primary
+                            primaryColor
                         }
 
                         percentSpent <= 0.75 -> {

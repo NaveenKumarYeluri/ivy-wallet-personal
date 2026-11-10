@@ -24,6 +24,8 @@ fun ProgressBar(
     positiveProgress: Boolean = true,
     percent: Double
 ) {
+    val primaryColor = UI.colors.primary
+
     Spacer(
         modifier = modifier
             .clip(UI.shapes.r4)
@@ -32,15 +34,15 @@ fun ProgressBar(
                 drawRect(
                     color = when {
                         percent <= 0.25 -> {
-                            if (positiveProgress) Red else UI.colors.primary
+                            if (positiveProgress) Red else primaryColor
                         }
                         percent <= 0.50 -> {
-                            if (positiveProgress) Orange else UI.colors.primary
+                            if (positiveProgress) Orange else primaryColor
                         }
                         percent <= 0.75 -> {
-                            if (positiveProgress) UI.colors.primary else Orange
+                            if (positiveProgress) primaryColor else Orange
                         }
-                        else -> if (positiveProgress) UI.colors.primary else Red
+                        else -> if (positiveProgress) primaryColor else Red
                     },
                     size = size.copy(
                         width = (size.width * percent).toFloat()

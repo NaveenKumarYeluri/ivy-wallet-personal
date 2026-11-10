@@ -38,6 +38,7 @@ import com.ivy.data.model.Category
 import com.ivy.data.model.primitive.ColorInt
 import com.ivy.data.model.primitive.IconAsset
 import com.ivy.data.model.primitive.NotBlankTrimmedString
+import com.ivy.design.l0_system.UI
 import com.ivy.domain.legacy.ui.IvyColorPicker
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.utils.hideKeyboard
@@ -75,8 +76,9 @@ fun BoxWithConstraintsScope.CategoryModal(
     var nameTextFieldValue by remember(modal) {
         mutableStateOf(selectEndTextFieldValue(initialCategory?.name?.value))
     }
-    var color by remember(modal) {
-        mutableStateOf(initialCategory?.color?.let { Color(it.value) } ?: UI.colors.primary)
+    val defaultPrimaryColor = UI.colors.primary
+    var color by remember(modal, defaultPrimaryColor) {
+        mutableStateOf(initialCategory?.color?.let { Color(it.value) } ?: defaultPrimaryColor)
     }
     var icon by remember(modal) {
         mutableStateOf(initialCategory?.icon)
