@@ -39,18 +39,17 @@ import androidx.compose.ui.unit.sp
 import com.ivy.base.model.TransactionType
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
-import com.ivy.legacy.legacy.ui.theme.modal.IvyModalComponents
 import com.ivy.legacy.legacy.ui.theme.modal.ModalNameInput
-import com.ivy.legacy.legacy.ui.theme.modal.ModalPositiveButton
 import com.ivy.navigation.EditTransactionScreen
 import com.ivy.navigation.navigation
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Red
 import com.ivy.wallet.ui.theme.White
 import com.ivy.wallet.ui.theme.components.IvyIcon
-import com.ivy.wallet.ui.theme.components.IvyNameTextField
 import com.ivy.wallet.ui.theme.modal.IvyModal
+import com.ivy.wallet.ui.theme.modal.ModalPositiveButton
 import com.ivy.wallet.ui.theme.modal.ModalTitle
+import java.util.Locale
 import java.util.UUID
 
 @Composable
@@ -191,7 +190,7 @@ private fun Double.toIntOrDouble(): String {
     return if (this % 1.0 == 0.0) {
         this.toInt().toString()
     } else {
-        String.format("%.2f", this)
+        String.format(Locale.US, "%.2f", this)
     }
 }
 
@@ -242,21 +241,43 @@ fun BoxWithConstraintsScope.CreateTemplateModal(
         Spacer(Modifier.height(20.dp))
 
         // Name input
+        Text(
+            modifier = Modifier.padding(start = 32.dp),
+            text = "Template Name",
+            style = UI.typo.b2.style(
+                color = UI.colors.pureInverse,
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        Spacer(Modifier.height(8.dp))
+
         ModalNameInput(
-            title = "Template Name",
             hint = "e.g., Morning Coffee",
-            value = name,
-            onValueChange = { name = it }
+            autoFocusKeyboard = false,
+            textFieldValue = name,
+            setTextFieldValue = { name = it }
         )
 
         Spacer(Modifier.height(16.dp))
 
         // Amount input (optional)
+        Text(
+            modifier = Modifier.padding(start = 32.dp),
+            text = "Amount (optional)",
+            style = UI.typo.b2.style(
+                color = UI.colors.pureInverse,
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        Spacer(Modifier.height(8.dp))
+
         ModalNameInput(
-            title = "Amount (optional)",
             hint = "0.00",
-            value = amountText,
-            onValueChange = { amountText = it }
+            autoFocusKeyboard = false,
+            textFieldValue = amountText,
+            setTextFieldValue = { amountText = it }
         )
 
         Spacer(Modifier.height(16.dp))
