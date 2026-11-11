@@ -387,7 +387,7 @@ class SettingsViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 progressState.value = false
-                Timber.e(e, "Error restoring encrypted vault")
+                e.printStackTrace()
                 uiThread {
                     val msg = when {
                         e is javax.crypto.AEADBadTagException || e.cause is javax.crypto.AEADBadTagException ->

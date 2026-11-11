@@ -83,6 +83,7 @@ fun BoxWithConstraintsScope.SettingsScreen() {
     val viewModel: SettingsViewModel = screenScopedViewModel()
     val uiState = viewModel.uiState()
     val rootScreen = rootScreen()
+    val context = LocalContext.current
 
     UI(
         currencyCode = uiState.currencyCode,
