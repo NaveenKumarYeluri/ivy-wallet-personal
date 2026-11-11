@@ -1600,8 +1600,7 @@ fun CategoryBudgetsSection(
                             ) {
                                 ItemIconM(
                                     iconName = budget.primaryCategoryIcon,
-                                    tint = catColor,
-                                    defaultIcon = R.drawable.ic_custom_categories_m
+                                    tint = catColor
                                 )
                             }
 
