@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.ivy.base.model.TransactionType
@@ -18,6 +19,7 @@ import com.ivy.data.model.CategoryId
 import com.ivy.data.model.IntervalType
 import com.ivy.data.repository.CategoryRepository
 import com.ivy.data.repository.TransactionRepository
+import com.ivy.domain.features.Features
 import com.ivy.legacy.datamodel.Account
 import com.ivy.legacy.datamodel.PlannedPaymentRule
 import com.ivy.legacy.datamodel.temp.toLegacyDomain
@@ -57,6 +59,7 @@ class EditPlannedViewModel @Inject constructor(
     private val plannedPaymentRuleWriter: WritePlannedPaymentRuleDao,
     private val transactionRepository: TransactionRepository,
     private val timeConverter: TimeConverter,
+    private val features: Features,
 ) : ComposeViewModel<EditPlannedScreenState, EditPlannedScreenEvent>() {
 
     private var transactionType by mutableStateOf(TransactionType.INCOME)
@@ -119,7 +122,14 @@ class EditPlannedViewModel @Inject constructor(
 
     @Composable
     private fun getCategories(): ImmutableList<Category> {
-        return categories
+        val sortAscending = features.sortCategoriesAscending.asEnabledState()
+        return if (sortAscending) {
+            remember(categories, sortAscending) {
+                categories.sortedBy { it.name.value.lowercase() }.toImmutableList()
+            }
+        } else {
+            categories
+        }
     }
 
     @Composable

@@ -19,6 +19,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -155,6 +159,7 @@ private fun BoxWithConstraintsScope.UI(
                 baseCurrency = state.baseCurrency,
                 accountData = it,
                 compactModeEnabled = state.compactAccountsModeEnabled,
+                hideTotalBalance = state.hideTotalBalance,
                 onBalanceClick = {
                     nav.navigateTo(
                         TransactionsScreen(
@@ -211,6 +216,7 @@ private fun AccountCard(
     baseCurrency: String,
     accountData: AccountData,
     compactModeEnabled: Boolean,
+    hideTotalBalance: Boolean = false,
     onBalanceClick: () -> Unit,
     onClick: () -> Unit
 ) {
@@ -230,13 +236,23 @@ private fun AccountCard(
         val contrastColor = findContrastTextColor(accountColor)
         val currency = account.asset.code
 
+        var revealBalance by remember { mutableStateOf(false) }
+        val isHidden = hideTotalBalance && !revealBalance
+
         AccountHeader(
             accountData = accountData,
             accountColor = accountColor,
             currency = currency,
             baseCurrency = baseCurrency,
             contrastColor = contrastColor,
-            onBalanceClick = onBalanceClick
+            hiddenMode = isHidden,
+            onBalanceClick = {
+                if (hideTotalBalance) {
+                    revealBalance = !revealBalance
+                } else {
+                    onBalanceClick()
+                }
+            }
         )
 
         if (!compactModeEnabled) {
@@ -262,6 +278,7 @@ private fun AccountHeader(
     currency: String,
     baseCurrency: String,
     contrastColor: Color,
+    hiddenMode: Boolean = false,
     onBalanceClick: () -> Unit
 ) {
     val account = accountData.account
@@ -317,6 +334,7 @@ private fun AccountHeader(
             textColor = contrastColor,
             currency = currency,
             balance = accountData.balance,
+            hiddenMode = hiddenMode,
 
             balanceFontSize = 30.sp,
             currencyFontSize = 30.sp,
@@ -335,6 +353,7 @@ private fun AccountHeader(
                 textColor = accountColor.dynamicContrast(),
                 currency = baseCurrency,
                 balance = accountData.balanceBaseCurrency!!,
+                hiddenMode = hiddenMode,
                 currencyUpfront = false
             )
         }

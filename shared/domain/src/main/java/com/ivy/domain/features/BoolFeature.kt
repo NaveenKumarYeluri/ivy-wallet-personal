@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.preferences.core.Preferences
@@ -25,15 +26,15 @@ class BoolFeature(
     @Composable
     fun asEnabledState(): Boolean {
         val context = LocalContext.current
-        val featureFlag = remember { enabledFlow(context) }
-            .collectAsState(defaultValue).value
-        return featureFlag ?: defaultValue
+        val featureFlag by remember(key, context) { enabledFlow(context) }
+            .collectAsState(initial = defaultValue)
+        return featureFlag
     }
 
     suspend fun isEnabled(appContext: Context): Boolean =
-        enabledFlow(appContext).first() ?: defaultValue
+        enabledFlow(appContext).first()
 
-    fun enabledFlow(appContext: Context): Flow<Boolean?> = appContext.dataStore
+    fun enabledFlow(appContext: Context): Flow<Boolean> = appContext.dataStore
         .data.map {
             it[featureKey] ?: defaultValue
         }

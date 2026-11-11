@@ -51,6 +51,8 @@ class CategoriesViewModel @Inject constructor(
     private val features: Features,
     private val timeProvider: TimeProvider,
     private val timeConverter: TimeConverter,
+    @dagger.hilt.android.qualifiers.ApplicationContext
+    private val context: android.content.Context,
 ) : ComposeViewModel<CategoriesScreenState, CategoriesScreenEvent>() {
 
     private val baseCurrency = mutableStateOf("")
@@ -98,10 +100,16 @@ class CategoriesViewModel @Inject constructor(
     @Composable
     private fun getCategories(): ImmutableList<CategoryData> {
         val allCats = categories.value
-        return remember(allCats, searchQuery.value) {
-            allCats.filter {
+        val sortAscending = features.sortCategoriesAscending.asEnabledState()
+        return remember(allCats, searchQuery.value, sortAscending, sortOrder.value) {
+            val filtered = allCats.filter {
                 searchQuery.value.lowercase().trim() in it.category.name.toString().lowercase()
-            }.toImmutableList()
+            }
+            if (sortAscending && sortOrder.value == SortOrder.DEFAULT) {
+                filtered.sortedBy { it.category.name.value.lowercase() }.toImmutableList()
+            } else {
+                filtered.toImmutableList()
+            }
         }
     }
 
@@ -156,10 +164,15 @@ class CategoriesViewModel @Inject constructor(
                 )
             )
 
+            val defaultSort = if (features.sortCategoriesAscending.isEnabled(context)) {
+                SortOrder.ALPHABETICAL
+            } else {
+                SortOrder.DEFAULT
+            }
             val sortOrder = SortOrder.from(
                 sharedPrefs.getInt(
                     SharedPrefs.CATEGORY_SORT_ORDER,
-                    SortOrder.DEFAULT.orderNum
+                    defaultSort.orderNum
                 )
             )
 
@@ -187,7 +200,8 @@ class CategoriesViewModel @Inject constructor(
                 )
             }
 
-            val sortedList = sortList(categories, sortOrder.value).toImmutableList()
+            val isSortAscending = features.sortCategoriesAscending.isEnabled(context)
+            val sortedList = sortList(categories, sortOrder.value, isSortAscending).toImmutableList()
             this.categories.value = sortedList
         }
     }
@@ -200,9 +214,10 @@ class CategoriesViewModel @Inject constructor(
         newOrder: List<CategoryData>,
         sortOrder: SortOrder = SortOrder.DEFAULT
     ) {
-        val sortedList = sortList(newOrder, sortOrder).toImmutableList()
+        val isSortAscending = features.sortCategoriesAscending.isEnabled(context)
+        val sortedList = sortList(newOrder, sortOrder, isSortAscending).toImmutableList()
 
-        if (sortOrder == SortOrder.DEFAULT) {
+        if (sortOrder == SortOrder.DEFAULT && !isSortAscending) {
             ioThread {
                 sortedList.forEachIndexed { index, categoryData ->
                     categoryRepository.save(categoryData.category.copy(orderNum = index.toDouble()))
@@ -220,11 +235,18 @@ class CategoriesViewModel @Inject constructor(
 
     private fun sortList(
         categoryData: List<CategoryData>,
-        sortOrder: SortOrder
+        sortOrder: SortOrder,
+        isSortAscending: Boolean = false
     ): List<CategoryData> {
         return when (sortOrder) {
-            SortOrder.DEFAULT -> categoryData.sortedBy {
-                it.category.orderNum
+            SortOrder.DEFAULT -> if (isSortAscending) {
+                categoryData.sortedBy {
+                    it.category.name.value.lowercase()
+                }
+            } else {
+                categoryData.sortedBy {
+                    it.category.orderNum
+                }
             }
 
             SortOrder.BALANCE_AMOUNT -> categoryData.sortedByDescending {
@@ -233,7 +255,7 @@ class CategoriesViewModel @Inject constructor(
                 .let { (nonZero, zero) -> nonZero + zero }
 
             SortOrder.ALPHABETICAL -> categoryData.sortedBy {
-                it.category.name.value
+                it.category.name.value.lowercase()
             }
 
             SortOrder.EXPENSES -> categoryData.sortedByDescending {

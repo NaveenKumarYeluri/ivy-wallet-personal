@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.ivy.base.legacy.Theme
@@ -130,6 +131,7 @@ class HomeViewModel @Inject constructor(
     private var customerJourneyCards by
     mutableStateOf<ImmutableList<CustomerJourneyCardModel>>(persistentListOf())
     private var hideBalance by mutableStateOf(false)
+    private var temporarilyRevealedBalance by mutableStateOf(false)
     private var hideIncome by mutableStateOf(false)
     private var expanded by mutableStateOf(true)
     private var expenseTrendPercent by mutableStateOf<Double?>(null)
@@ -184,7 +186,16 @@ class HomeViewModel @Inject constructor(
 
     @Composable
     private fun getBaseData(): AppBaseData {
-        return baseData
+        val sortAscending = features.sortCategoriesAscending.asEnabledState()
+        return if (sortAscending) {
+            remember(baseData, sortAscending) {
+                baseData.copy(
+                    categories = baseData.categories.sortedBy { it.name.value.lowercase() }.toImmutableList()
+                )
+            }
+        } else {
+            baseData
+        }
     }
 
     @Composable
@@ -224,7 +235,9 @@ class HomeViewModel @Inject constructor(
 
     @Composable
     private fun getHideBalance(): Boolean {
-        return hideBalance
+        if (temporarilyRevealedBalance) return false
+        val hideTotalBalanceFeature = features.hideTotalBalance.asEnabledState()
+        return hideBalance || hideTotalBalanceFeature
     }
 
     @Composable
@@ -467,12 +480,12 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun onHiddenBalanceClick() {
-        hideBalance = false
+        temporarilyRevealedBalance = true
 
-        // Showing Balance fow 5s
+        // Showing Balance for 5s
         delay(5000)
 
-        hideBalance = true
+        temporarilyRevealedBalance = false
     }
 
     private suspend fun onHiddenIncomeClick() {

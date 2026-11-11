@@ -163,7 +163,7 @@ private fun FeatureRow(
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Switch(checked = feature.enabled, onCheckedChange = { onToggleClick() })
+            Switch(checked = feature.enabled, onCheckedChange = null)
         }
     }
 }

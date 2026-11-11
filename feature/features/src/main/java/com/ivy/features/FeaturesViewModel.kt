@@ -37,20 +37,17 @@ class FeaturesViewModel @Inject constructor(
     @Composable
     fun getFeatures(): ImmutableList<FeatureItemViewState> {
         return buildList {
-            val groups: Map<FeatureGroup?, BoolFeature> =
-                features.allFeatures
-                    .associateBy { it.group }
-                    .toSortedMap(compareBy { it?.name })
+            val groups = features.allFeatures
+                .groupBy { it.group }
+                .toSortedMap(compareBy { it?.name })
 
-            groups.forEach { group ->
+            groups.forEach { (group, featuresInGroup) ->
                 add(
                     FeatureItemViewState.FeatureHeaderViewState(
-                        name = group.key?.name ?: "Undefined"
+                        name = group?.name ?: "Undefined"
                     )
                 )
-                val featuresByGroup: List<FeatureItemViewState> = features
-                    .allFeatures
-                    .filter { it.group?.name == group.key?.name }
+                val featuresByGroup: List<FeatureItemViewState> = featuresInGroup
                     .map {
                         FeatureItemViewState.FeatureToggleViewState(
                             key = it.key,

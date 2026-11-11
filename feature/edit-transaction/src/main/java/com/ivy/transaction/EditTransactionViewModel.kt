@@ -7,6 +7,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.ivy.base.Toaster
@@ -258,7 +259,14 @@ class EditTransactionViewModel @Inject constructor(
 
     @Composable
     private fun getCategories(): ImmutableList<Category> {
-        return categories
+        val sortAscending = features.sortCategoriesAscending.asEnabledState()
+        return if (sortAscending) {
+            remember(categories, sortAscending) {
+                categories.sortedBy { it.name.value.lowercase() }.toImmutableList()
+            }
+        } else {
+            categories
+        }
     }
 
     @Composable
@@ -989,7 +997,7 @@ class EditTransactionViewModel @Inject constructor(
     private suspend fun sortCategories(): ImmutableList<Category> {
         val categories = categoryRepository.findAll()
         return if (shouldSortCategoriesAscending()) {
-            categories.sortedBy { it.name.value }.toImmutableList()
+            categories.sortedBy { it.name.value.lowercase() }.toImmutableList()
         } else {
             categories.toImmutableList()
         }
