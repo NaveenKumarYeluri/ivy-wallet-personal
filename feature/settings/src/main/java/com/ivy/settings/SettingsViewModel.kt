@@ -237,6 +237,11 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.ExportToCsv -> exportToCSV(event.rootScreen)
             is SettingsEvent.BackupData -> exportToZip(event.rootScreen)
             is SettingsEvent.BackupEncryptedVault -> exportToEncryptedVault(event.rootScreen, event.password)
+            is SettingsEvent.RestoreEncryptedVault -> restoreEncryptedVault(
+                context = event.context,
+                vaultUri = event.vaultUri,
+                password = event.password
+            )
             SettingsEvent.SwitchTheme -> switchTheme()
             is SettingsEvent.SetTheme -> setTheme(event.theme)
             is SettingsEvent.SetAccent -> setAccent(event.accent)
@@ -355,6 +360,42 @@ class SettingsViewModel @Inject constructor(
                     rootScreen.shareZipFile(
                         fileUri = fileUri
                     )
+                }
+            }
+        }
+    }
+
+    private fun restoreEncryptedVault(context: Context, vaultUri: Uri, password: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                progressState.value = true
+                val result = backupDataUseCase.importEncryptedVault(
+                    vaultUri = vaultUri,
+                    password = password.toCharArray()
+                ) {
+                }
+                progressState.value = false
+                sharedPrefs.putBoolean(SharedPrefs.DATA_BACKUP_COMPLETED, true)
+                ivyContext.dataBackupCompleted = true
+
+                uiThread {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Vault restored successfully! (${result.transactionsImported} transactions, ${result.accountsImported} accounts)",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                progressState.value = false
+                Timber.e(e, "Error restoring encrypted vault")
+                uiThread {
+                    val msg = when {
+                        e is javax.crypto.AEADBadTagException || e.cause is javax.crypto.AEADBadTagException ->
+                            "Invalid password or corrupted vault backup."
+                        e is SecurityException -> e.message ?: "Authentication failed."
+                        else -> "Failed to restore vault: ${e.localizedMessage ?: "Unknown error"}"
+                    }
+                    android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_LONG).show()
                 }
             }
         }

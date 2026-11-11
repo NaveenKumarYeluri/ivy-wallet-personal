@@ -7,6 +7,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toArgb
@@ -70,7 +71,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.Year
+import java.time.YearMonth
 import java.time.ZoneId
+import java.time.format.TextStyle
+import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
 
@@ -128,7 +134,29 @@ class ReportViewModel @Inject constructor(
     private var treatTransfersAsIncExp by mutableStateOf(false)
     private var allTags by mutableStateOf<ImmutableList<Tag>>(persistentListOf())
     private var topSpendingCategories by mutableStateOf<ImmutableList<CategorySpendingItem>>(persistentListOf())
+    private var topIncomeCategories by mutableStateOf<ImmutableList<CategorySpendingItem>>(persistentListOf())
     private var savingsRate by mutableFloatStateOf(0f)
+
+    // Default Reports fields
+    private var periodType by mutableStateOf(ReportPeriodType.MONTHLY)
+    private var selectedYearMonth by mutableStateOf(YearMonth.now())
+    private var selectedYear by mutableIntStateOf(Year.now().value)
+    private var periodLabel by mutableStateOf("")
+    private var canGoForward by mutableStateOf(false)
+    private var intervalGraphItems by mutableStateOf<ImmutableList<IntervalGraphItem>>(persistentListOf())
+    private var pieChartMode by mutableStateOf(TransactionType.EXPENSE)
+    private var categoryViewMode by mutableStateOf(TransactionType.EXPENSE)
+    private var dailyBurnRate by mutableDoubleStateOf(0.0)
+    private var projectedPeriodExpense by mutableDoubleStateOf(0.0)
+    private var projectedPeriodSavings by mutableDoubleStateOf(0.0)
+    private var financialRunwayMonths by mutableDoubleStateOf(0.0)
+    private var predictionStatus by mutableStateOf("On Track")
+    private var balanceTrendPoints by mutableStateOf<ImmutableList<BalanceTrendPoint>>(persistentListOf())
+    private var startingBalance by mutableDoubleStateOf(0.0)
+    private var endingBalance by mutableDoubleStateOf(0.0)
+    private var peakBalance by mutableDoubleStateOf(0.0)
+    private var lowestBalance by mutableDoubleStateOf(0.0)
+    private var netChange by mutableDoubleStateOf(0.0)
 
     private var tagSearchJob: Job? = null
     private val tagSearchDebounceTimeInMills: Long = 500
@@ -143,6 +171,9 @@ class ReportViewModel @Inject constructor(
         LaunchedEffect(Unit) {
             start()
         }
+
+        val currentCategoryList = if (categoryViewMode == TransactionType.EXPENSE) topSpendingCategories else topIncomeCategories
+        val currentPieSlices = if (pieChartMode == TransactionType.EXPENSE) topSpendingCategories else topIncomeCategories
 
         return ReportScreenState(
             categories = categories,
@@ -169,8 +200,27 @@ class ReportViewModel @Inject constructor(
             upcomingTransactions = upcomingTransactions,
             allTags = allTags,
             showAccountColorsInTransactions = getShouldShowAccountSpecificColorInTransactions(),
-            topSpendingCategories = topSpendingCategories,
-            savingsRate = savingsRate
+            topSpendingCategories = currentCategoryList,
+            topIncomeCategories = topIncomeCategories,
+            savingsRate = savingsRate,
+            periodType = periodType,
+            periodLabel = periodLabel,
+            canGoForward = canGoForward,
+            intervalGraphItems = intervalGraphItems,
+            pieChartMode = pieChartMode,
+            pieChartSlices = currentPieSlices,
+            categoryViewMode = categoryViewMode,
+            dailyBurnRate = dailyBurnRate,
+            projectedPeriodExpense = projectedPeriodExpense,
+            projectedPeriodSavings = projectedPeriodSavings,
+            financialRunwayMonths = financialRunwayMonths,
+            predictionStatus = predictionStatus,
+            balanceTrendPoints = balanceTrendPoints,
+            startingBalance = startingBalance,
+            endingBalance = endingBalance,
+            peakBalance = peakBalance,
+            lowestBalance = lowestBalance,
+            netChange = netChange
         )
     }
 
@@ -194,6 +244,11 @@ class ReportViewModel @Inject constructor(
                 )
 
                 is ReportScreenEvent.OnTagSearch -> onTagSearch(event.data)
+                is ReportScreenEvent.OnSelectPeriodType -> selectPeriodType(event.periodType)
+                ReportScreenEvent.OnPreviousPeriod -> previousPeriod()
+                ReportScreenEvent.OnNextPeriod -> nextPeriod()
+                is ReportScreenEvent.OnTogglePieChartMode -> { pieChartMode = event.type }
+                is ReportScreenEvent.OnToggleCategoryViewMode -> { categoryViewMode = event.type }
             }
         }
     }
@@ -224,6 +279,261 @@ class ReportViewModel @Inject constructor(
             categories =
                 (listOf(unSpecifiedCategory) + categoryRepository.findAll()).toImmutableList()
             allTags = tagRepository.findAll().toImmutableList()
+            if (filter == null) {
+                recomputeDefaultReports()
+            }
+        }
+    }
+
+    private fun selectPeriodType(type: ReportPeriodType) {
+        periodType = type
+        viewModelScope.launch(Dispatchers.IO) {
+            recomputeDefaultReports()
+        }
+    }
+
+    private fun previousPeriod() {
+        when (periodType) {
+            ReportPeriodType.MONTHLY -> selectedYearMonth = selectedYearMonth.minusMonths(1)
+            ReportPeriodType.YEARLY -> selectedYear -= 1
+            ReportPeriodType.ALL_TIME -> {}
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            recomputeDefaultReports()
+        }
+    }
+
+    private fun nextPeriod() {
+        when (periodType) {
+            ReportPeriodType.MONTHLY -> if (canGoForward) selectedYearMonth = selectedYearMonth.plusMonths(1)
+            ReportPeriodType.YEARLY -> if (canGoForward) selectedYear += 1
+            ReportPeriodType.ALL_TIME -> {}
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            recomputeDefaultReports()
+        }
+    }
+
+    private suspend fun recomputeDefaultReports() {
+        withContext(Dispatchers.IO) {
+            loading = true
+            val allTransactions = transactionRepository.findAll()
+            val allAccounts = accountsAct(Unit)
+            accounts = allAccounts.toImmutableList()
+            val allCats = (listOf(unSpecifiedCategory) + categoryRepository.findAll()).toImmutableList()
+            categories = allCats
+            val categoryMap = allCats.associateBy { it.id.value }
+
+            val now = LocalDate.now()
+            val (periodLabelStr, canForward, periodTrns) = when (periodType) {
+                ReportPeriodType.MONTHLY -> {
+                    val label = "${selectedYearMonth.month.getDisplayName(TextStyle.FULL, Locale.US)} ${selectedYearMonth.year}"
+                    val canFwd = selectedYearMonth.isBefore(YearMonth.now())
+                    val startInstant = selectedYearMonth.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
+                    val endInstant = selectedYearMonth.atEndOfMonth().atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault()).toInstant()
+                    val trns = allTransactions.filter { it.time in startInstant..endInstant }
+                    Triple(label, canFwd, trns)
+                }
+                ReportPeriodType.YEARLY -> {
+                    val label = "$selectedYear"
+                    val canFwd = selectedYear < Year.now().value
+                    val startInstant = LocalDate.of(selectedYear, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant()
+                    val endInstant = LocalDate.of(selectedYear, 12, 31).atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault()).toInstant()
+                    val trns = allTransactions.filter { it.time in startInstant..endInstant }
+                    Triple(label, canFwd, trns)
+                }
+                ReportPeriodType.ALL_TIME -> {
+                    val label = "All Recorded Time"
+                    Triple(label, false, allTransactions)
+                }
+            }
+
+            periodLabel = periodLabelStr
+            canGoForward = canForward
+
+            val periodIncomes = periodTrns.filterIsInstance<Income>()
+            val periodExpenses = periodTrns.filterIsInstance<Expense>()
+
+            val inc = periodIncomes.sumOf { it.value.amount.value }
+            val exp = periodExpenses.sumOf { it.value.amount.value }
+
+            income = inc
+            expenses = exp
+            balance = inc - exp
+            savingsRate = if (inc > 0) (((inc - exp) / inc) * 100).toFloat().coerceIn(-100f, 100f) else 0f
+
+            // Category breakdown for expenses
+            val totalExp = if (exp > 0) exp else 1.0
+            topSpendingCategories = periodExpenses
+                .groupBy { it.category?.value }
+                .map { (catId, trns) ->
+                    val cat = catId?.let { categoryMap[it] } ?: unSpecifiedCategory
+                    val sum = trns.sumOf { it.value.amount.value }
+                    val pct = ((sum / totalExp) * 100).toFloat().coerceIn(0f, 100f)
+                    CategorySpendingItem(
+                        categoryName = cat.name.value,
+                        categoryColor = cat.color.value,
+                        categoryIcon = cat.icon?.id,
+                        totalAmount = sum,
+                        percentage = pct,
+                        transactionCount = trns.size
+                    )
+                }
+                .sortedByDescending { it.totalAmount }
+                .toImmutableList()
+
+            // Category breakdown for income
+            val totalInc = if (inc > 0) inc else 1.0
+            topIncomeCategories = periodIncomes
+                .groupBy { it.category?.value }
+                .map { (catId, trns) ->
+                    val cat = catId?.let { categoryMap[it] } ?: unSpecifiedCategory
+                    val sum = trns.sumOf { it.value.amount.value }
+                    val pct = ((sum / totalInc) * 100).toFloat().coerceIn(0f, 100f)
+                    CategorySpendingItem(
+                        categoryName = cat.name.value,
+                        categoryColor = cat.color.value,
+                        categoryIcon = cat.icon?.id,
+                        totalAmount = sum,
+                        percentage = pct,
+                        transactionCount = trns.size
+                    )
+                }
+                .sortedByDescending { it.totalAmount }
+                .toImmutableList()
+
+            // Interval Graph Items
+            val graphItems = mutableListOf<IntervalGraphItem>()
+            when (periodType) {
+                ReportPeriodType.MONTHLY -> {
+                    val daysInMonth = selectedYearMonth.lengthOfMonth()
+                    val intervals = listOf(
+                        "1-7" to (1..7),
+                        "8-14" to (8..14),
+                        "15-21" to (15..21),
+                        "22-28" to (22..28),
+                        "29+" to (29..daysInMonth)
+                    )
+                    intervals.forEach { (lbl, range) ->
+                        val subIncomes = periodIncomes.filter {
+                            val day = it.time.atZone(ZoneId.systemDefault()).dayOfMonth
+                            day in range
+                        }.sumOf { it.value.amount.value }
+                        val subExpenses = periodExpenses.filter {
+                            val day = it.time.atZone(ZoneId.systemDefault()).dayOfMonth
+                            day in range
+                        }.sumOf { it.value.amount.value }
+                        graphItems.add(IntervalGraphItem(label = lbl, income = subIncomes, expense = subExpenses))
+                    }
+                }
+                ReportPeriodType.YEARLY -> {
+                    val monthNames = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+                    for (m in 1..12) {
+                        val subIncomes = periodIncomes.filter {
+                            it.time.atZone(ZoneId.systemDefault()).monthValue == m
+                        }.sumOf { it.value.amount.value }
+                        val subExpenses = periodExpenses.filter {
+                            it.time.atZone(ZoneId.systemDefault()).monthValue == m
+                        }.sumOf { it.value.amount.value }
+                        graphItems.add(IntervalGraphItem(label = monthNames[m - 1], income = subIncomes, expense = subExpenses))
+                    }
+                }
+                ReportPeriodType.ALL_TIME -> {
+                    val years = periodTrns.map { it.time.atZone(ZoneId.systemDefault()).year }.distinct().sorted()
+                    val displayYears = if (years.isEmpty()) listOf(Year.now().value) else years.takeLast(5)
+                    displayYears.forEach { yr ->
+                        val subIncomes = periodIncomes.filter {
+                            it.time.atZone(ZoneId.systemDefault()).year == yr
+                        }.sumOf { it.value.amount.value }
+                        val subExpenses = periodExpenses.filter {
+                            it.time.atZone(ZoneId.systemDefault()).year == yr
+                        }.sumOf { it.value.amount.value }
+                        graphItems.add(IntervalGraphItem(label = yr.toString(), income = subIncomes, expense = subExpenses))
+                    }
+                }
+            }
+            intervalGraphItems = graphItems.toImmutableList()
+
+            // Future Prediction & Runway
+            val (daysElapsed, daysRemaining) = when (periodType) {
+                ReportPeriodType.MONTHLY -> {
+                    val daysInMonth = selectedYearMonth.lengthOfMonth()
+                    if (selectedYearMonth == YearMonth.now()) {
+                        val elapsed = now.dayOfMonth.coerceAtLeast(1)
+                        elapsed to (daysInMonth - elapsed).coerceAtLeast(0)
+                    } else if (selectedYearMonth.isBefore(YearMonth.now())) {
+                        daysInMonth to 0
+                    } else {
+                        1 to (daysInMonth - 1)
+                    }
+                }
+                ReportPeriodType.YEARLY -> {
+                    val daysInYear = Year.of(selectedYear).length()
+                    if (selectedYear == Year.now().value) {
+                        val elapsed = now.dayOfYear.coerceAtLeast(1)
+                        elapsed to (daysInYear - elapsed).coerceAtLeast(0)
+                    } else if (selectedYear < Year.now().value) {
+                        daysInYear to 0
+                    } else {
+                        1 to (daysInYear - 1)
+                    }
+                }
+                ReportPeriodType.ALL_TIME -> {
+                    val totalDays = 365
+                    totalDays to 0
+                }
+            }
+
+            val burn = if (daysElapsed > 0) exp / daysElapsed else 0.0
+            dailyBurnRate = burn
+            projectedPeriodExpense = exp + (burn * daysRemaining)
+            projectedPeriodSavings = inc - projectedPeriodExpense
+
+            val totalAccBalance = allAccounts.sumOf { it.balance }
+            val monthlyBurn = burn * 30.4
+            financialRunwayMonths = when {
+                monthlyBurn > 0.01 && totalAccBalance > 0 -> totalAccBalance / monthlyBurn
+                totalAccBalance <= 0 -> 0.0
+                else -> 99.0
+            }
+
+            predictionStatus = when {
+                inc > 0 && projectedPeriodExpense <= inc * 0.7 -> "Excellent Savings"
+                inc > 0 && projectedPeriodExpense <= inc -> "On Track"
+                projectedPeriodExpense > inc && inc > 0 -> "Caution: Over Budget"
+                else -> "Active Pace"
+            }
+
+            // Balance Trend
+            val sortedTrns = periodTrns.sortedBy { it.time }
+            val trendPts = mutableListOf<BalanceTrendPoint>()
+            var runningBalance = 0.0
+            trendPts.add(BalanceTrendPoint(label = "Start", balance = 0.0))
+
+            if (sortedTrns.isNotEmpty()) {
+                val groupedByDay = sortedTrns.groupBy {
+                    val ldt = it.time.atZone(ZoneId.systemDefault())
+                    "${ldt.monthValue}/${ldt.dayOfMonth}"
+                }
+                groupedByDay.forEach { (dayLabel, trns) ->
+                    val dayInc = trns.filterIsInstance<Income>().sumOf { it.value.amount.value }
+                    val dayExp = trns.filterIsInstance<Expense>().sumOf { it.value.amount.value }
+                    runningBalance += (dayInc - dayExp)
+                    trendPts.add(BalanceTrendPoint(label = dayLabel, balance = runningBalance))
+                }
+            } else {
+                trendPts.add(BalanceTrendPoint(label = "End", balance = 0.0))
+            }
+
+            balanceTrendPoints = trendPts.toImmutableList()
+            startingBalance = 0.0
+            endingBalance = runningBalance
+            netChange = runningBalance
+            peakBalance = trendPts.maxOfOrNull { it.balance } ?: 0.0
+            lowestBalance = trendPts.minOfOrNull { it.balance } ?: 0.0
+
+            transactions = periodTrns.map { it.toLegacy(transactionMapper) }.toImmutableList()
+            loading = false
         }
     }
 
@@ -686,8 +996,7 @@ class ReportViewModel @Inject constructor(
     }
 
     private fun shareSummary(context: Context) {
-        val filter = filter ?: return
-        val periodText = filter.period?.toString() ?: "Selected Period"
+        val periodText = filter?.period?.toString() ?: periodLabel.ifEmpty { "Current Period" }
         val currency = baseCurrency
         val net = income - expenses
         val netSign = if (net >= 0) "+" else ""

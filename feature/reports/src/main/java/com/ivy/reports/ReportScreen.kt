@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,15 +37,18 @@ import com.ivy.data.model.primitive.IconAsset
 import com.ivy.data.model.primitive.NotBlankTrimmedString
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.utils.thenIf
 import com.ivy.legacy.IvyWalletPreview
-import com.ivy.legacy.data.AppBaseData
 import com.ivy.legacy.data.LegacyDueSection
 import com.ivy.legacy.datamodel.Account
+import com.ivy.legacy.ivyWalletCtx
 import com.ivy.legacy.ui.component.IncomeExpensesCards
 import com.ivy.legacy.ui.component.transaction.TransactionsDividerLine
 import com.ivy.legacy.ui.component.transaction.transactions
 import com.ivy.legacy.utils.clickableNoIndication
+import com.ivy.legacy.utils.horizontalSwipeListener
 import com.ivy.legacy.utils.rememberInteractionSource
+import com.ivy.legacy.utils.rememberSwipeListenerState
 import com.ivy.navigation.PieChartStatisticScreen
 import com.ivy.navigation.ReportScreen
 import com.ivy.navigation.navigation
@@ -62,14 +66,13 @@ import com.ivy.wallet.ui.theme.Red3Light
 import com.ivy.wallet.ui.theme.components.BackButtonType
 import com.ivy.wallet.ui.theme.components.BalanceRow
 import com.ivy.wallet.ui.theme.components.CircleButtonFilled
-import com.ivy.wallet.ui.theme.components.IvyButton
 import com.ivy.wallet.ui.theme.components.IvyCheckboxWithText
-import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.components.IvyOutlinedButton
 import com.ivy.wallet.ui.theme.components.IvyToolbar
 import com.ivy.wallet.ui.theme.pureBlur
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import java.math.BigDecimal
 import java.util.UUID
 
 @ExperimentalFoundationApi
@@ -80,23 +83,26 @@ fun BoxWithConstraintsScope.ReportScreen(
     val viewModel: ReportViewModel = viewModel()
     val state = viewModel.uiState()
 
-    UI(
+    ReportScreenContent(
         state = state,
-        onEventHandler = viewModel::onEvent
+        onEventHandler = viewModel::onEvent,
+        isTab = false
     )
 }
 
 @ExperimentalFoundationApi
 @Composable
-private fun BoxWithConstraintsScope.UI(
+fun BoxWithConstraintsScope.ReportScreenContent(
     state: ReportScreenState = ReportScreenState(),
-    onEventHandler: (ReportScreenEvent) -> Unit = {}
+    onEventHandler: (ReportScreenEvent) -> Unit = {},
+    isTab: Boolean = false
 ) {
     val legacyTransactions = state.transactions
     val nav = navigation()
     val context = LocalContext.current
+    val ivyCtx = ivyWalletCtx()
 
-    val listState = rememberScrollPositionListState(key = "reports")
+    val listState = rememberScrollPositionListState(key = if (isTab) "reports_tab" else "reports_screen")
 
     if (state.loading) {
         Box(
@@ -122,11 +128,24 @@ private fun BoxWithConstraintsScope.UI(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .systemBarsPadding(),
+            .systemBarsPadding()
+            .thenIf(isTab) {
+                horizontalSwipeListener(
+                    sensitivity = 200,
+                    state = rememberSwipeListenerState(),
+                    onSwipeLeft = {
+                        // Rightmost tab
+                    },
+                    onSwipeRight = {
+                        ivyCtx.selectMainTab(com.ivy.legacy.data.model.MainTab.ACCOUNTS)
+                    }
+                )
+            },
         state = listState
     ) {
         stickyHeader {
             Toolbar(
+                isTab = isTab,
                 onExport = {
                     onEventHandler.invoke(ReportScreenEvent.OnExport(context = context))
                 },
@@ -143,12 +162,24 @@ private fun BoxWithConstraintsScope.UI(
             )
         }
 
+        // 1. Period Switcher (Monthly, Yearly, All Time)
+        item {
+            ReportPeriodSelector(
+                periodType = state.periodType,
+                periodLabel = state.periodLabel.ifEmpty { "November 2026" },
+                canGoForward = state.canGoForward,
+                onSelectPeriodType = { onEventHandler.invoke(ReportScreenEvent.OnSelectPeriodType(it)) },
+                onPreviousPeriod = { onEventHandler.invoke(ReportScreenEvent.OnPreviousPeriod) },
+                onNextPeriod = { onEventHandler.invoke(ReportScreenEvent.OnNextPeriod) }
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // 2. Executive Summary
         item {
             Text(
-                modifier = Modifier.padding(
-                    start = 32.dp
-                ),
-                text = stringResource(R.string.reports),
+                modifier = Modifier.padding(start = 32.dp),
+                text = "Financial Summary",
                 style = UI.typo.h2.style(
                     fontWeight = FontWeight.ExtraBold
                 )
@@ -157,8 +188,7 @@ private fun BoxWithConstraintsScope.UI(
             Spacer(Modifier.height(8.dp))
 
             BalanceRow(
-                modifier = Modifier
-                    .padding(start = 32.dp),
+                modifier = Modifier.padding(start = 32.dp),
                 textColor = UI.colors.pureInverse,
                 currency = state.baseCurrency,
                 balance = state.balance,
@@ -168,7 +198,7 @@ private fun BoxWithConstraintsScope.UI(
                 }
             )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
 
             IncomeExpensesCards(
                 history = state.history,
@@ -178,35 +208,16 @@ private fun BoxWithConstraintsScope.UI(
                 hasAddButtons = false,
                 itemColor = UI.colors.pure,
                 incomeHeaderCardClicked = {
-                    if (state.transactions.isNotEmpty()) {
-                        nav.navigateTo(
-                            PieChartStatisticScreen(
-                                type = TransactionType.INCOME,
-                                transactions = legacyTransactions.toImmutableList(),
-                                accountList = state.accountIdFilters,
-                                treatTransfersAsIncomeExpense = state.treatTransfersAsIncExp
-                            )
-                        )
-                    }
+                    onEventHandler.invoke(ReportScreenEvent.OnTogglePieChartMode(TransactionType.INCOME))
                 },
                 expenseHeaderCardClicked = {
-                    if (state.transactions.isNotEmpty()) {
-                        nav.navigateTo(
-                            PieChartStatisticScreen(
-                                type = TransactionType.EXPENSE,
-                                transactions = legacyTransactions.toImmutableList(),
-                                accountList = state.accountIdFilters,
-                                treatTransfersAsIncomeExpense = state.treatTransfersAsIncExp
-                            )
-                        )
-                    }
+                    onEventHandler.invoke(ReportScreenEvent.OnTogglePieChartMode(TransactionType.EXPENSE))
                 }
             )
 
             if (state.showTransfersAsIncExpCheckbox) {
                 IvyCheckboxWithText(
-                    modifier = Modifier
-                        .padding(16.dp),
+                    modifier = Modifier.padding(16.dp),
                     text = stringResource(R.string.transfers_as_income_expense),
                     checked = state.treatTransfersAsIncExp
                 ) {
@@ -217,56 +228,107 @@ private fun BoxWithConstraintsScope.UI(
                     )
                 }
             } else {
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(20.dp))
             }
-
-            TransactionsDividerLine(
-                paddingHorizontal = 0.dp
-            )
-
-            Spacer(Modifier.height(4.dp))
         }
 
-        if (state.filter != null) {
+        // 3. Cash Flow Ratio
+        item {
+            CashFlowBarChart(
+                income = state.income,
+                expenses = state.expenses,
+                currency = state.baseCurrency
+            )
+            Spacer(Modifier.height(12.dp))
+        }
+
+        // 4. Savings Efficiency
+        item {
+            SavingsRateCard(
+                savingsRate = state.savingsRate,
+                income = state.income,
+                expenses = state.expenses,
+                currency = state.baseCurrency
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // 5. Income & Expense Comparison Graph
+        if (state.intervalGraphItems.isNotEmpty()) {
             item {
+                IncomeExpenseComparisonGraph(
+                    intervalItems = state.intervalGraphItems,
+                    currency = state.baseCurrency
+                )
                 Spacer(Modifier.height(16.dp))
-                CashFlowBarChart(
-                    income = state.income,
-                    expenses = state.expenses,
-                    currency = state.baseCurrency
-                )
             }
+        }
 
+        // 6. Pie Chart Distribution
+        item {
+            val totalForPie = if (state.pieChartMode == TransactionType.EXPENSE) state.expenses else state.income
+            CategoryPieChartSection(
+                slices = state.pieChartSlices,
+                totalAmount = totalForPie,
+                currency = state.baseCurrency,
+                currentMode = state.pieChartMode,
+                onToggleMode = { onEventHandler.invoke(ReportScreenEvent.OnTogglePieChartMode(it)) }
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // 7. Future Prediction & Runway
+        item {
+            FuturePredictionCard(
+                dailyBurnRate = state.dailyBurnRate,
+                projectedPeriodExpense = state.projectedPeriodExpense,
+                projectedPeriodSavings = state.projectedPeriodSavings,
+                financialRunwayMonths = state.financialRunwayMonths,
+                predictionStatus = state.predictionStatus,
+                currency = state.baseCurrency
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // 8. Balance Trend Sparkline / Area Graph
+        if (state.balanceTrendPoints.isNotEmpty()) {
             item {
-                Spacer(Modifier.height(12.dp))
-                SavingsRateCard(
-                    savingsRate = state.savingsRate,
-                    income = state.income,
-                    expenses = state.expenses,
+                BalanceTrendSection(
+                    points = state.balanceTrendPoints,
+                    startingBalance = state.startingBalance,
+                    endingBalance = state.endingBalance,
+                    netChange = state.netChange,
+                    peakBalance = state.peakBalance,
+                    lowestBalance = state.lowestBalance,
                     currency = state.baseCurrency
                 )
+                Spacer(Modifier.height(16.dp))
             }
+        }
 
-            if (state.topSpendingCategories.isNotEmpty()) {
-                item {
-                    Spacer(Modifier.height(16.dp))
-                    TopSpendingCategoriesSection(
-                        categories = state.topSpendingCategories,
-                        currency = state.baseCurrency
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    TransactionsDividerLine(paddingHorizontal = 24.dp)
-                    Spacer(Modifier.height(8.dp))
-                }
-            }
+        // 9. Category Breakdown List
+        item {
+            CategoryWiseBreakdownSection(
+                categories = state.topSpendingCategories,
+                currency = state.baseCurrency,
+                currentMode = state.categoryViewMode,
+                onToggleMode = { onEventHandler.invoke(ReportScreenEvent.OnToggleCategoryViewMode(it)) }
+            )
+            Spacer(Modifier.height(16.dp))
+        }
 
+        // 10. If custom filter active, show transaction history
+        if (state.filter != null) {
             transactions(
-                baseData = AppBaseData(
-                    baseCurrency = state.baseCurrency,
-                    categories = state.categories,
-                    accounts = state.accounts,
-                ),
-
+                currency = state.baseCurrency,
+                onTransactionClick = {
+                    nav.navigateTo(
+                        com.ivy.navigation.EditTransactionScreen(
+                            initialTransactionId = it.id,
+                            type = it.type
+                        )
+                    )
+                },
                 upcoming = LegacyDueSection(
                     trns = state.upcomingTransactions,
                     stats = IncomeExpensePair(
@@ -275,11 +337,9 @@ private fun BoxWithConstraintsScope.UI(
                     ),
                     expanded = state.upcomingExpanded
                 ),
-
                 setUpcomingExpanded = {
                     onEventHandler.invoke(ReportScreenEvent.OnUpcomingExpanded(upcomingExpanded = it))
                 },
-
                 overdue = LegacyDueSection(
                     trns = state.overdueTransactions,
                     stats = IncomeExpensePair(
@@ -291,10 +351,8 @@ private fun BoxWithConstraintsScope.UI(
                 setOverdueExpanded = {
                     onEventHandler.invoke(ReportScreenEvent.OnOverdueExpanded(overdueExpanded = it))
                 },
-
                 history = state.history,
                 lastItemSpacer = 48.dp,
-
                 onPayOrGet = {
                     onEventHandler.invoke(ReportScreenEvent.OnPayOrGetLegacy(transaction = it))
                 },
@@ -308,17 +366,12 @@ private fun BoxWithConstraintsScope.UI(
                     onEventHandler.invoke(ReportScreenEvent.SkipTransactionsLegacy(transactions = it))
                 }
             )
-        } else {
+        }
+
+        // Bottom padding for navigation bar
+        if (isTab) {
             item {
-                NoFilterEmptyState(
-                    setFilterOverlayVisible = {
-                        onEventHandler.invoke(
-                            ReportScreenEvent.OnFilterOverlayVisible(
-                                filterOverlayVisible = it
-                            )
-                        )
-                    }
-                )
+                Spacer(Modifier.height(150.dp))
             }
         }
     }
@@ -347,102 +400,95 @@ private fun BoxWithConstraintsScope.UI(
 }
 
 @Composable
-private fun NoFilterEmptyState(
-    setFilterOverlayVisible: (Boolean) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(16.dp))
-
-        IvyIcon(
-            icon = R.drawable.ic_filter_l,
-            tint = Gray
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(R.string.no_filter),
-            style = UI.typo.b1.style(
-                color = Gray,
-                fontWeight = FontWeight.ExtraBold
-            )
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            modifier = Modifier.padding(horizontal = 32.dp),
-            text = stringResource(R.string.invalid_filter_warning),
-            style = UI.typo.b2.style(
-                color = Gray,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
-            )
-        )
-
-        Spacer(Modifier.height(32.dp))
-
-        IvyButton(
-            iconStart = R.drawable.ic_filter_xs,
-            text = stringResource(R.string.set_filter)
-        ) {
-            setFilterOverlayVisible(true)
-        }
-
-        Spacer(Modifier.height(96.dp))
-    }
-}
-
-@Composable
 private fun Toolbar(
+    isTab: Boolean = false,
     onExport: () -> Unit,
     onShareSummary: () -> Unit,
     onFilter: () -> Unit
 ) {
     val nav = navigation()
-    IvyToolbar(
-        backButtonType = BackButtonType.CLOSE,
-        onBack = {
-            nav.back()
-        }
-    ) {
-        Spacer(Modifier.weight(1f))
-
-        // Share Summary
-        CircleButtonFilled(
-            icon = R.drawable.ic_share
+    if (isTab) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            onShareSummary()
+            Text(
+                text = stringResource(R.string.reports),
+                style = UI.typo.h2.style(
+                    fontWeight = FontWeight.ExtraBold,
+                    color = UI.colors.pureInverse
+                )
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            CircleButtonFilled(
+                icon = R.drawable.ic_share
+            ) {
+                onShareSummary()
+            }
+
+            Spacer(Modifier.width(10.dp))
+
+            IvyOutlinedButton(
+                text = stringResource(R.string.export),
+                iconTint = UI.colors.primary,
+                borderColor = UI.colors.primary,
+                textColor = UI.colors.primary,
+                solidBackground = true,
+                padding = 8.dp,
+                iconStart = R.drawable.ic_export_csv
+            ) {
+                onExport()
+            }
+
+            Spacer(Modifier.width(10.dp))
+
+            CircleButtonFilled(
+                icon = R.drawable.ic_filter_xs
+            ) {
+                onFilter()
+            }
         }
-
-        Spacer(Modifier.width(12.dp))
-
-        // Export CSV
-        IvyOutlinedButton(
-            text = stringResource(R.string.export),
-            iconTint = UI.colors.primary,
-            borderColor = UI.colors.primary,
-            textColor = UI.colors.primary,
-            solidBackground = true,
-            padding = 8.dp,
-            iconStart = R.drawable.ic_export_csv
+    } else {
+        IvyToolbar(
+            backButtonType = BackButtonType.CLOSE,
+            onBack = {
+                nav.back()
+            }
         ) {
-            onExport()
+            Spacer(Modifier.weight(1f))
+
+            CircleButtonFilled(
+                icon = R.drawable.ic_share
+            ) {
+                onShareSummary()
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            IvyOutlinedButton(
+                text = stringResource(R.string.export),
+                iconTint = UI.colors.primary,
+                borderColor = UI.colors.primary,
+                textColor = UI.colors.primary,
+                solidBackground = true,
+                padding = 8.dp,
+                iconStart = R.drawable.ic_export_csv
+            ) {
+                onExport()
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            CircleButtonFilled(
+                icon = R.drawable.ic_filter_xs
+            ) {
+                onFilter()
+            }
         }
-
-        Spacer(Modifier.width(12.dp))
-
-        // Filter
-        CircleButtonFilled(
-            icon = R.drawable.ic_filter_xs
-        ) {
-            onFilter()
-        }
-
-        Spacer(Modifier.width(24.dp))
     }
 }
 
@@ -469,11 +515,9 @@ private fun Preview(theme: Theme = Theme.LIGHT) {
             upcomingExpenses = 0.0,
             overdueIncome = 2335.12,
             overdueExpenses = 0.0,
-            history =
-            persistentListOf(),
+            history = persistentListOf(),
             upcomingTransactions = persistentListOf(),
             overdueTransactions = persistentListOf(),
-
             upcomingExpanded = true,
             overdueExpanded = true,
             filter = ReportFilter.emptyFilter("BGN"),
@@ -503,7 +547,7 @@ private fun Preview(theme: Theme = Theme.LIGHT) {
             ),
         )
 
-        UI(state = state)
+        ReportScreenContent(state = state)
     }
 }
 
@@ -530,17 +574,13 @@ private fun Preview_NO_FILTER(theme: Theme = Theme.LIGHT) {
             upcomingExpenses = 0.0,
             overdueIncome = 0.0,
             overdueExpenses = 0.0,
-
             history = persistentListOf(),
             upcomingTransactions = persistentListOf(),
             overdueTransactions = persistentListOf(),
-
             upcomingExpanded = true,
             overdueExpanded = true,
-
             filter = null,
             loading = false,
-
             accounts = persistentListOf(
                 acc1,
                 acc2,
@@ -566,7 +606,7 @@ private fun Preview_NO_FILTER(theme: Theme = Theme.LIGHT) {
             ),
         )
 
-        UI(state = state)
+        ReportScreenContent(state = state)
     }
 }
 

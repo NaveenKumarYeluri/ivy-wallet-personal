@@ -1,5 +1,6 @@
 package com.ivy.settings
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -119,6 +120,9 @@ fun BoxWithConstraintsScope.SettingsScreen() {
         onBackupEncryptedVault = {
             viewModel.onEvent(SettingsEvent.BackupEncryptedVault(rootScreen, it))
         },
+        onRestoreEncryptedVault = { vaultUri, password ->
+            viewModel.onEvent(SettingsEvent.RestoreEncryptedVault(context, vaultUri, password))
+        },
         onExportToCSV = {
             viewModel.onEvent(SettingsEvent.ExportToCsv(rootScreen))
         },
@@ -183,6 +187,7 @@ private fun BoxWithConstraintsScope.UI(
     onSetName: (String) -> Unit = {},
     onBackupData: () -> Unit = {},
     onBackupEncryptedVault: (String) -> Unit = {},
+    onRestoreEncryptedVault: (Uri, String) -> Unit = { _, _ -> },
     onExportToCSV: () -> Unit = {},
     onSetLockApp: (Boolean) -> Unit = {},
     onSetShowNotifications: (Boolean) -> Unit = {},
@@ -205,6 +210,9 @@ private fun BoxWithConstraintsScope.UI(
     var deleteAllDataModalVisible by remember { mutableStateOf(false) }
     var deleteAllDataModalFinalVisible by remember { mutableStateOf(false) }
     var vaultModalVisible by remember { mutableStateOf(false) }
+    var restoreVaultModalVisible by remember { mutableStateOf(false) }
+    var pendingRestoreVaultUri by remember { mutableStateOf<Uri?>(null) }
+    val ivyCtx = com.ivy.legacy.ivyWalletCtx()
     val nav = navigation()
 
     LazyColumn(
@@ -292,6 +300,20 @@ private fun BoxWithConstraintsScope.UI(
                 iconPadding = 8.dp
             ) {
                 vaultModalVisible = true
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            SettingsDefaultButton(
+                icon = R.drawable.ic_vue_security_shield_security,
+                text = "Restore Encrypted Vault",
+                description = "Decrypt & restore from AES-256 backup (.ivybkp)",
+                iconPadding = 8.dp
+            ) {
+                ivyCtx.openFile { uri ->
+                    pendingRestoreVaultUri = uri
+                    restoreVaultModalVisible = true
+                }
             }
 
             Spacer(Modifier.height(12.dp))
@@ -570,9 +592,24 @@ private fun BoxWithConstraintsScope.UI(
 
     VaultPasswordModal(
         visible = vaultModalVisible,
+        isRestore = false,
         dismiss = { vaultModalVisible = false }
     ) { password ->
         onBackupEncryptedVault(password)
+    }
+
+    VaultPasswordModal(
+        visible = restoreVaultModalVisible,
+        isRestore = true,
+        dismiss = {
+            restoreVaultModalVisible = false
+            pendingRestoreVaultUri = null
+        }
+    ) { password ->
+        pendingRestoreVaultUri?.let { uri ->
+            onRestoreEncryptedVault(uri, password)
+        }
+        pendingRestoreVaultUri = null
     }
 
     ChooseStartDateOfMonthModal(

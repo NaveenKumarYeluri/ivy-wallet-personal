@@ -129,20 +129,32 @@ fun BoxWithConstraintsScope.BottomBar(
             icon = R.drawable.ic_home,
             name = stringResource(R.string.home),
             selected = tab == MainTab.HOME,
-            selectedColor = UI.colors.primary
+            selectedColor = UI.colors.primary,
+            weight = 1f
         ) {
             selectTab(MainTab.HOME)
         }
-
-        Spacer(Modifier.width(FAB_BUTTON_SIZE))
 
         Tab(
             icon = R.drawable.ic_accounts,
             name = stringResource(R.string.accounts),
             selected = tab == MainTab.ACCOUNTS,
-            selectedColor = UI.colors.primary
+            selectedColor = UI.colors.primary,
+            weight = 1f
         ) {
             selectTab(MainTab.ACCOUNTS)
+        }
+
+        Spacer(Modifier.width(FAB_BUTTON_SIZE))
+
+        Tab(
+            icon = R.drawable.ic_vue_chart_chart,
+            name = stringResource(R.string.reports),
+            selected = tab == MainTab.REPORTS,
+            selectedColor = UI.colors.primary,
+            weight = 2f
+        ) {
+            selectTab(MainTab.REPORTS)
         }
     }
 
@@ -194,7 +206,7 @@ fun BoxWithConstraintsScope.BottomBar(
             .size(FAB_BUTTON_SIZE)
             .rotate(fabRotation)
             .zIndex(200f)
-            .thenIf(tab == MainTab.HOME) {
+            .thenIf(tab == MainTab.HOME || tab == MainTab.REPORTS) {
                 pointerInput(Unit) {
                     detectDragGestures(
                         onDragCancel = {
@@ -243,7 +255,7 @@ fun BoxWithConstraintsScope.BottomBar(
         tint = White
     ) {
         when (tab) {
-            MainTab.HOME -> {
+            MainTab.HOME, MainTab.REPORTS -> {
                 expanded = !expanded
             }
 
@@ -603,11 +615,12 @@ private fun RowScope.Tab(
     name: String,
     selected: Boolean,
     selectedColor: Color,
+    weight: Float = 1f,
     onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
-            .weight(1f)
+            .weight(weight)
             .clip(UI.shapes.rFull)
             .clickable(onClick = onClick)
             .padding(top = 12.dp, bottom = 16.dp)

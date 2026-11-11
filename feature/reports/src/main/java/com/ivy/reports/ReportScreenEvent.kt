@@ -1,6 +1,7 @@
 package com.ivy.reports
 
 import android.content.Context
+import com.ivy.base.model.TransactionType
 import com.ivy.data.model.Transaction
 
 sealed class ReportScreenEvent {
@@ -16,16 +17,17 @@ sealed class ReportScreenEvent {
     data class OnTagSearch(val data: String) : ReportScreenEvent()
     data class OnTreatTransfersAsIncomeExpense(val transfersAsIncomeExpense: Boolean) :
         ReportScreenEvent()
-
-    @Deprecated("Uses legacy Transaction")
+    data class OnPayOrGetLegacy(val transaction: com.ivy.base.legacy.Transaction) :
+        ReportScreenEvent()
+    data class SkipTransactionLegacy(val transaction: com.ivy.base.legacy.Transaction) :
+        ReportScreenEvent()
     data class SkipTransactionsLegacy(val transactions: List<com.ivy.base.legacy.Transaction>) :
         ReportScreenEvent()
 
-    @Deprecated("Uses legacy Transaction")
-    data class SkipTransactionLegacy(val transaction: com.ivy.base.legacy.Transaction) :
-        ReportScreenEvent()
-
-    @Deprecated("Uses legacy Transaction")
-    data class OnPayOrGetLegacy(val transaction: com.ivy.base.legacy.Transaction) :
-        ReportScreenEvent()
+    // Default Reports events
+    data class OnSelectPeriodType(val periodType: ReportPeriodType) : ReportScreenEvent()
+    data object OnPreviousPeriod : ReportScreenEvent()
+    data object OnNextPeriod : ReportScreenEvent()
+    data class OnTogglePieChartMode(val type: TransactionType) : ReportScreenEvent()
+    data class OnToggleCategoryViewMode(val type: TransactionType) : ReportScreenEvent()
 }

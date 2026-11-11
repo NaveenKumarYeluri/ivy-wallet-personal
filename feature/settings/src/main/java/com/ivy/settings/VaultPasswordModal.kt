@@ -25,6 +25,7 @@ import java.util.UUID
 @Composable
 fun BoxWithConstraintsScope.VaultPasswordModal(
     visible: Boolean,
+    isRestore: Boolean = false,
     dismiss: () -> Unit,
     onPasswordConfirmed: (String) -> Unit
 ) {
@@ -40,7 +41,7 @@ fun BoxWithConstraintsScope.VaultPasswordModal(
             ModalSave {
                 if (password.length < 4) {
                     errorMessage = "Password must be at least 4 characters"
-                } else if (password != confirmPassword) {
+                } else if (!isRestore && password != confirmPassword) {
                     errorMessage = "Passwords do not match"
                 } else {
                     errorMessage = null
@@ -54,7 +55,7 @@ fun BoxWithConstraintsScope.VaultPasswordModal(
 
         Text(
             modifier = Modifier.padding(start = 32.dp),
-            text = "Set Vault Password",
+            text = if (isRestore) "Decrypt Vault Backup" else "Set Vault Password",
             style = UI.typo.b1.style(
                 fontWeight = FontWeight.ExtraBold,
                 color = UI.colors.pureInverse
@@ -65,7 +66,11 @@ fun BoxWithConstraintsScope.VaultPasswordModal(
 
         Text(
             modifier = Modifier.padding(horizontal = 32.dp),
-            text = "Your data will be encrypted with AES-256-GCM. Make sure to remember this password, as it cannot be recovered without it.",
+            text = if (isRestore) {
+                "Enter your AES-256 password to decrypt and restore your Ivy Wallet vault backup (.ivybkp)."
+            } else {
+                "Your data will be encrypted with AES-256-GCM. Make sure to remember this password, as it cannot be recovered without it."
+            },
             style = UI.typo.c.style(
                 color = UI.colors.gray
             )
@@ -81,13 +86,15 @@ fun BoxWithConstraintsScope.VaultPasswordModal(
                 password = it.text
             }
 
-            Spacer(Modifier.height(16.dp))
+            if (!isRestore) {
+                Spacer(Modifier.height(16.dp))
 
-            IvyTitleTextField(
-                value = androidx.compose.ui.text.input.TextFieldValue(confirmPassword),
-                hint = "Confirm vault password"
-            ) {
-                confirmPassword = it.text
+                IvyTitleTextField(
+                    value = androidx.compose.ui.text.input.TextFieldValue(confirmPassword),
+                    hint = "Confirm vault password"
+                ) {
+                    confirmPassword = it.text
+                }
             }
 
             if (errorMessage != null) {

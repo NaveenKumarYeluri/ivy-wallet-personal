@@ -10,6 +10,7 @@ sealed interface SettingsEvent {
     data class ExportToCsv(val rootScreen: RootScreen) : SettingsEvent
     data class BackupData(val rootScreen: RootScreen) : SettingsEvent
     data class BackupEncryptedVault(val rootScreen: RootScreen, val password: String) : SettingsEvent
+    data class RestoreEncryptedVault(val context: android.content.Context, val vaultUri: android.net.Uri, val password: String) : SettingsEvent
     data object SwitchTheme : SettingsEvent
     data class SetTheme(val theme: Theme) : SettingsEvent
     data class SetAccent(val accent: ThemeAccent) : SettingsEvent

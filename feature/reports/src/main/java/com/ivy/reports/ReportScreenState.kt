@@ -1,12 +1,30 @@
 package com.ivy.reports
 
 import com.ivy.base.legacy.TransactionHistoryItem
+import com.ivy.base.model.TransactionType
 import com.ivy.data.model.Category
 import com.ivy.data.model.Tag
 import com.ivy.legacy.datamodel.Account
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import java.util.*
+import java.util.UUID
+
+enum class ReportPeriodType {
+    MONTHLY, YEARLY, ALL_TIME
+}
+
+@Suppress("DataClassDefaultValues")
+data class IntervalGraphItem(
+    val label: String,
+    val income: Double,
+    val expense: Double
+)
+
+@Suppress("DataClassDefaultValues")
+data class BalanceTrendPoint(
+    val label: String,
+    val balance: Double
+)
 
 @Suppress("DataClassDefaultValues")
 data class CategorySpendingItem(
@@ -45,5 +63,27 @@ data class ReportScreenState(
     val allTags: ImmutableList<Tag> = persistentListOf(),
     val showAccountColorsInTransactions: Boolean = false,
     val topSpendingCategories: ImmutableList<CategorySpendingItem> = persistentListOf(),
-    val savingsRate: Float = 0f
+    val topIncomeCategories: ImmutableList<CategorySpendingItem> = persistentListOf(),
+    val savingsRate: Float = 0f,
+    // Default Reports Properties
+    val periodType: ReportPeriodType = ReportPeriodType.MONTHLY,
+    val periodLabel: String = "",
+    val canGoForward: Boolean = false,
+    val intervalGraphItems: ImmutableList<IntervalGraphItem> = persistentListOf(),
+    val pieChartMode: TransactionType = TransactionType.EXPENSE,
+    val pieChartSlices: ImmutableList<CategorySpendingItem> = persistentListOf(),
+    val categoryViewMode: TransactionType = TransactionType.EXPENSE,
+    // Future predictions
+    val dailyBurnRate: Double = 0.0,
+    val projectedPeriodExpense: Double = 0.0,
+    val projectedPeriodSavings: Double = 0.0,
+    val financialRunwayMonths: Double = 0.0,
+    val predictionStatus: String = "On Track",
+    // Balance trend
+    val balanceTrendPoints: ImmutableList<BalanceTrendPoint> = persistentListOf(),
+    val startingBalance: Double = 0.0,
+    val endingBalance: Double = 0.0,
+    val peakBalance: Double = 0.0,
+    val lowestBalance: Double = 0.0,
+    val netChange: Double = 0.0
 )
