@@ -4,6 +4,7 @@ import com.ivy.base.legacy.TransactionHistoryItem
 import com.ivy.base.model.TransactionType
 import com.ivy.data.model.Category
 import com.ivy.data.model.Tag
+import com.ivy.data.repository.SavingsGoal
 import com.ivy.legacy.datamodel.Account
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -118,5 +119,7 @@ data class ReportScreenState(
     val categoryBudgets: ImmutableList<ReportBudgetItem> = persistentListOf(),
     val totalBudgetLimit: Double = 0.0,
     val totalBudgetSpent: Double = 0.0,
-    val totalBudgetRemaining: Double = 0.0
+    val totalBudgetRemaining: Double = 0.0,
+    // Savings goals
+    val savingsGoals: ImmutableList<SavingsGoal> = persistentListOf()
 )

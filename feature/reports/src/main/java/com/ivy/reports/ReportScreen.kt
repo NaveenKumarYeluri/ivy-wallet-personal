@@ -16,6 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
@@ -35,6 +39,7 @@ import com.ivy.data.model.CategoryId
 import com.ivy.data.model.primitive.ColorInt
 import com.ivy.data.model.primitive.IconAsset
 import com.ivy.data.model.primitive.NotBlankTrimmedString
+import com.ivy.data.repository.SavingsGoal
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.design.utils.thenIf
@@ -106,6 +111,12 @@ fun BoxWithConstraintsScope.ReportScreenContent(
 
     val listState = rememberScrollPositionListState(key = if (isTab) "reports_tab" else "reports_screen")
     val swipeListenerState = rememberSwipeListenerState()
+
+    var goalModalVisible by remember { mutableStateOf(false) }
+    var selectedGoalForEdit by remember { mutableStateOf<SavingsGoal?>(null) }
+    var quickDepositModalVisible by remember { mutableStateOf(false) }
+    var selectedGoalForQuickAction by remember { mutableStateOf<SavingsGoal?>(null) }
+    var isDepositMode by remember { mutableStateOf(true) }
 
     if (state.loading) {
         Box(
@@ -297,7 +308,34 @@ fun BoxWithConstraintsScope.ReportScreenContent(
             Spacer(Modifier.height(16.dp))
         }
 
-        // 8. Pie Chart Distribution
+        // 8. Savings Goals & Targets ("Piggy Banks")
+        item {
+            SavingsGoalsSection(
+                goals = state.savingsGoals,
+                currency = state.baseCurrency,
+                onAddGoal = {
+                    selectedGoalForEdit = null
+                    goalModalVisible = true
+                },
+                onEditGoal = { goal ->
+                    selectedGoalForEdit = goal
+                    goalModalVisible = true
+                },
+                onDeposit = { goal ->
+                    selectedGoalForQuickAction = goal
+                    isDepositMode = true
+                    quickDepositModalVisible = true
+                },
+                onWithdraw = { goal ->
+                    selectedGoalForQuickAction = goal
+                    isDepositMode = false
+                    quickDepositModalVisible = true
+                }
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // 9. Pie Chart Distribution
         item {
             val totalForPie = if (state.pieChartMode == TransactionType.EXPENSE) state.expenses else state.income
             CategoryPieChartSection(
@@ -424,6 +462,30 @@ fun BoxWithConstraintsScope.ReportScreenContent(
         },
         onTagSearch = {
             onEventHandler.invoke(ReportScreenEvent.OnTagSearch(data = it))
+        }
+    )
+
+    SavingsGoalModal(
+        visible = goalModalVisible,
+        goal = selectedGoalForEdit,
+        currency = state.baseCurrency,
+        dismiss = { goalModalVisible = false },
+        onSave = { onEventHandler.invoke(ReportScreenEvent.OnSaveGoal(it)) },
+        onDelete = { onEventHandler.invoke(ReportScreenEvent.OnDeleteGoal(it)) }
+    )
+
+    QuickDepositModal(
+        visible = quickDepositModalVisible,
+        goal = selectedGoalForQuickAction,
+        isDeposit = isDepositMode,
+        currency = state.baseCurrency,
+        dismiss = { quickDepositModalVisible = false },
+        onConfirm = { goalId, amount ->
+            if (isDepositMode) {
+                onEventHandler.invoke(ReportScreenEvent.OnDepositGoal(goalId, amount))
+            } else {
+                onEventHandler.invoke(ReportScreenEvent.OnWithdrawGoal(goalId, amount))
+            }
         }
     )
 }

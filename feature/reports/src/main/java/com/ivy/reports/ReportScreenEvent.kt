@@ -3,6 +3,7 @@ package com.ivy.reports
 import android.content.Context
 import com.ivy.base.model.TransactionType
 import com.ivy.data.model.Transaction
+import com.ivy.data.repository.SavingsGoal
 
 sealed class ReportScreenEvent {
     data class OnFilter(val filter: ReportFilter?) : ReportScreenEvent()
@@ -31,4 +32,10 @@ sealed class ReportScreenEvent {
     data class OnTogglePieChartMode(val type: TransactionType) : ReportScreenEvent()
     data class OnToggleCategoryViewMode(val type: TransactionType) : ReportScreenEvent()
     data class OnSelectHeatmapDay(val day: DailySpendingHeatmapDay?) : ReportScreenEvent()
+
+    // Savings Goals events
+    data class OnSaveGoal(val goal: SavingsGoal) : ReportScreenEvent()
+    data class OnDeleteGoal(val goalId: String) : ReportScreenEvent()
+    data class OnDepositGoal(val goalId: String, val amount: Double) : ReportScreenEvent()
+    data class OnWithdrawGoal(val goalId: String, val amount: Double) : ReportScreenEvent()
 }

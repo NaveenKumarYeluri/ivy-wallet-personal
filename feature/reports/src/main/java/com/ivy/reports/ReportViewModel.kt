@@ -29,6 +29,8 @@ import com.ivy.data.model.Transfer
 import com.ivy.data.model.primitive.ColorInt
 import com.ivy.data.model.primitive.NotBlankTrimmedString
 import com.ivy.data.repository.CategoryRepository
+import com.ivy.data.repository.SavingsGoal
+import com.ivy.data.repository.SavingsGoalRepository
 import com.ivy.data.repository.TagRepository
 import com.ivy.data.repository.TransactionRepository
 import com.ivy.data.repository.mapper.TransactionMapper
@@ -100,7 +102,8 @@ class ReportViewModel @Inject constructor(
     private val timeProvider: TimeProvider,
     private val timeConverter: TimeConverter,
     private val features: Features,
-    private val budgetsAct: BudgetsAct
+    private val budgetsAct: BudgetsAct,
+    private val savingsGoalRepository: SavingsGoalRepository
 ) : ComposeViewModel<ReportScreenState, ReportScreenEvent>() {
     private val unSpecifiedCategory =
         Category(
@@ -166,6 +169,7 @@ class ReportViewModel @Inject constructor(
     private var totalBudgetLimit by mutableDoubleStateOf(0.0)
     private var totalBudgetSpent by mutableDoubleStateOf(0.0)
     private var totalBudgetRemaining by mutableDoubleStateOf(0.0)
+    private var savingsGoals by mutableStateOf<ImmutableList<SavingsGoal>>(persistentListOf())
 
     private var tagSearchJob: Job? = null
     private val tagSearchDebounceTimeInMills: Long = 500
@@ -235,7 +239,8 @@ class ReportViewModel @Inject constructor(
             categoryBudgets = categoryBudgets,
             totalBudgetLimit = totalBudgetLimit,
             totalBudgetSpent = totalBudgetSpent,
-            totalBudgetRemaining = totalBudgetRemaining
+            totalBudgetRemaining = totalBudgetRemaining,
+            savingsGoals = savingsGoals
         )
     }
 
@@ -267,6 +272,10 @@ class ReportViewModel @Inject constructor(
                 is ReportScreenEvent.OnSelectHeatmapDay -> {
                     selectedHeatmapDay = if (selectedHeatmapDay?.dayOfMonth == event.day?.dayOfMonth) null else event.day
                 }
+                is ReportScreenEvent.OnSaveGoal -> saveGoal(event.goal)
+                is ReportScreenEvent.OnDeleteGoal -> deleteGoal(event.goalId)
+                is ReportScreenEvent.OnDepositGoal -> depositGoal(event.goalId, event.amount)
+                is ReportScreenEvent.OnWithdrawGoal -> withdrawGoal(event.goalId, event.amount)
             }
         }
     }
@@ -297,6 +306,7 @@ class ReportViewModel @Inject constructor(
             categories =
                 (listOf(unSpecifiedCategory) + categoryRepository.findAll()).toImmutableList()
             allTags = tagRepository.findAll().toImmutableList()
+            savingsGoals = savingsGoalRepository.getAll()
             if (filter == null) {
                 recomputeDefaultReports()
             }
@@ -637,7 +647,36 @@ class ReportViewModel @Inject constructor(
             lowestBalance = trendPts.minOfOrNull { it.balance } ?: 0.0
 
             transactions = periodTrns.map { it.toLegacy(transactionMapper) }.toImmutableList()
+            savingsGoals = savingsGoalRepository.getAll()
             loading = false
+        }
+    }
+
+    private fun saveGoal(goal: SavingsGoal) {
+        viewModelScope.launch(Dispatchers.IO) {
+            savingsGoalRepository.save(goal)
+            savingsGoals = savingsGoalRepository.getAll()
+        }
+    }
+
+    private fun deleteGoal(goalId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            savingsGoalRepository.delete(goalId)
+            savingsGoals = savingsGoalRepository.getAll()
+        }
+    }
+
+    private fun depositGoal(goalId: String, amount: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            savingsGoalRepository.deposit(goalId, amount)
+            savingsGoals = savingsGoalRepository.getAll()
+        }
+    }
+
+    private fun withdrawGoal(goalId: String, amount: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            savingsGoalRepository.withdraw(goalId, amount)
+            savingsGoals = savingsGoalRepository.getAll()
         }
     }
 

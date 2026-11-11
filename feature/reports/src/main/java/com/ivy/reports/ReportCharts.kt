@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ivy.base.model.TransactionType
+import com.ivy.data.repository.SavingsGoal
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.ui.R
@@ -1692,6 +1693,338 @@ fun CategoryBudgetsSection(
                         color = UI.colors.primary
                     )
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun SavingsGoalsSection(
+    goals: ImmutableList<SavingsGoal>,
+    currency: String,
+    onAddGoal: () -> Unit,
+    onEditGoal: (SavingsGoal) -> Unit,
+    onDeposit: (SavingsGoal) -> Unit,
+    onWithdraw: (SavingsGoal) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(UI.colors.medium)
+            .padding(16.dp)
+    ) {
+        // Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Savings Goals & Targets",
+                style = UI.typo.b1.style(
+                    fontWeight = FontWeight.Bold,
+                    color = UI.colors.pureInverse
+                )
+            )
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(UI.colors.primary.copy(alpha = 0.15f))
+                    .clickable { onAddGoal() }
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "+ New Goal",
+                    style = UI.typo.c.style(
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.primary
+                    )
+                )
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = "Dedicated piggy banks for travel, emergencies & purchases",
+            style = UI.typo.c.style(
+                color = UI.colors.gray
+            )
+        )
+
+        Spacer(Modifier.height(14.dp))
+
+        if (goals.isEmpty()) {
+            // Empty State
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(UI.colors.pure)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "No savings goals created yet",
+                        style = UI.typo.b2.style(
+                            fontWeight = FontWeight.SemiBold,
+                            color = UI.colors.pureInverse
+                        )
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Text(
+                        text = "Build up an Emergency Fund or save towards a big target with progress tracking.",
+                        style = UI.typo.c.style(
+                            color = UI.colors.gray,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(UI.colors.primary)
+                            .clickable { onAddGoal() }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "+ Create First Goal",
+                            style = UI.typo.b2.style(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        )
+                    }
+                }
+            }
+        } else {
+            val totalSaved = goals.sumOf { it.currentAmount }
+            val totalTarget = goals.sumOf { it.targetAmount }.coerceAtLeast(0.01)
+            val overallPct = ((totalSaved / totalTarget) * 100).toFloat().coerceIn(0f, 999f)
+
+            // Aggregate Summary Card
+            if (goals.size > 1) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(UI.colors.pure)
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Total Savings Progress",
+                            style = UI.typo.b2.style(
+                                fontWeight = FontWeight.Bold,
+                                color = UI.colors.pureInverse
+                            )
+                        )
+                        Text(
+                            text = "$currency${String.format(Locale.US, "%.0f", totalSaved)} / $currency${String.format(Locale.US, "%.0f", totalTarget)} (${String.format(Locale.US, "%.0f%%", overallPct)})",
+                            style = UI.typo.c.style(
+                                fontWeight = FontWeight.Bold,
+                                color = UI.colors.primary
+                            )
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(UI.colors.medium)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = (totalSaved / totalTarget).toFloat().coerceIn(0f, 1f))
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(UI.colors.primary)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(14.dp))
+            }
+
+            // Goals List
+            goals.forEachIndexed { index, goal ->
+                val goalColor = Color(goal.color)
+                val animatedFraction by animateFloatAsState(
+                    targetValue = (goal.currentAmount / goal.targetAmount.coerceAtLeast(0.01)).toFloat().coerceIn(0f, 1f),
+                    animationSpec = tween(600),
+                    label = "goalFraction_$index"
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(UI.colors.pure)
+                        .padding(14.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .clip(CircleShape)
+                                    .background(goalColor)
+                            )
+
+                            Spacer(Modifier.width(10.dp))
+
+                            Text(
+                                text = goal.name,
+                                style = UI.typo.b2.style(
+                                    fontWeight = FontWeight.Bold,
+                                    color = UI.colors.pureInverse
+                                )
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .clickable { onEditGoal(goal) }
+                                .padding(4.dp)
+                        ) {
+                            Text(
+                                text = "Edit",
+                                style = UI.typo.c.style(
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = UI.colors.gray
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$currency${String.format(Locale.US, "%.0f", goal.currentAmount)} / $currency${String.format(Locale.US, "%.0f", goal.targetAmount)}",
+                            style = UI.typo.b2.style(
+                                fontWeight = FontWeight.Bold,
+                                color = UI.colors.pureInverse
+                            )
+                        )
+
+                        Text(
+                            text = String.format(Locale.US, "%.0f%%", goal.percentage),
+                            style = UI.typo.b2.style(
+                                fontWeight = FontWeight.ExtraBold,
+                                color = if (goal.isCompleted) Green else goalColor
+                            )
+                        )
+                    }
+
+                    Spacer(Modifier.height(6.dp))
+
+                    // Progress Bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(UI.colors.medium)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = animatedFraction)
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(if (goal.isCompleted) Green else goalColor)
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val subText = if (goal.isCompleted) {
+                            "🎉 Target reached!"
+                        } else {
+                            "$currency${String.format(Locale.US, "%.0f", goal.remainingAmount)} left" +
+                                    (goal.targetDate?.let { " • Target: $it" } ?: "")
+                        }
+
+                        Text(
+                            text = subText,
+                            style = UI.typo.c.style(
+                                color = if (goal.isCompleted) Green else UI.colors.gray,
+                                fontWeight = if (goal.isCompleted) FontWeight.Bold else FontWeight.Medium
+                            )
+                        )
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(UI.colors.medium)
+                                    .clickable { onWithdraw(goal) }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "- Withdraw",
+                                    style = UI.typo.c.style(
+                                        fontWeight = FontWeight.Bold,
+                                        color = UI.colors.gray
+                                    )
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(goalColor.copy(alpha = 0.2f))
+                                    .clickable { onDeposit(goal) }
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "+ Deposit",
+                                    style = UI.typo.c.style(
+                                        fontWeight = FontWeight.Bold,
+                                        color = goalColor
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    if (index < goals.lastIndex) {
+                        Spacer(Modifier.height(10.dp))
+                    }
+                }
             }
         }
     }
