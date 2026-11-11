@@ -27,7 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -478,11 +480,17 @@ private fun circleButtonModifier(
     size: Dp = 80.dp,
     onClick: () -> Unit,
 ): Modifier {
+    val haptic = LocalHapticFeedback.current
     return Modifier
         .size(size)
         .clip(CircleShape)
         .clickable(
-            onClick = onClick
+            onClick = {
+                try {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                } catch (ignored: Exception) {}
+                onClick()
+            }
         )
         .background(UI.colors.pure, UI.shapes.rFull)
         .border(2.dp, UI.colors.medium, UI.shapes.rFull)

@@ -75,6 +75,7 @@ import java.time.LocalDate
 import java.time.Year
 import java.time.YearMonth
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 import java.util.UUID
@@ -157,6 +158,8 @@ class ReportViewModel @Inject constructor(
     private var peakBalance by mutableDoubleStateOf(0.0)
     private var lowestBalance by mutableDoubleStateOf(0.0)
     private var netChange by mutableDoubleStateOf(0.0)
+    private var dailyHeatmapDays by mutableStateOf<ImmutableList<DailySpendingHeatmapDay>>(persistentListOf())
+    private var selectedHeatmapDay by mutableStateOf<DailySpendingHeatmapDay?>(null)
 
     private var tagSearchJob: Job? = null
     private val tagSearchDebounceTimeInMills: Long = 500
@@ -220,7 +223,9 @@ class ReportViewModel @Inject constructor(
             endingBalance = endingBalance,
             peakBalance = peakBalance,
             lowestBalance = lowestBalance,
-            netChange = netChange
+            netChange = netChange,
+            dailyHeatmapDays = dailyHeatmapDays,
+            selectedHeatmapDay = selectedHeatmapDay
         )
     }
 
@@ -249,6 +254,9 @@ class ReportViewModel @Inject constructor(
                 ReportScreenEvent.OnNextPeriod -> nextPeriod()
                 is ReportScreenEvent.OnTogglePieChartMode -> { pieChartMode = event.type }
                 is ReportScreenEvent.OnToggleCategoryViewMode -> { categoryViewMode = event.type }
+                is ReportScreenEvent.OnSelectHeatmapDay -> {
+                    selectedHeatmapDay = if (selectedHeatmapDay?.dayOfMonth == event.day?.dayOfMonth) null else event.day
+                }
             }
         }
     }
@@ -453,6 +461,46 @@ class ReportViewModel @Inject constructor(
                 }
             }
             intervalGraphItems = graphItems.toImmutableList()
+
+            // Daily Spending Activity Heatmap
+            if (periodType == ReportPeriodType.MONTHLY) {
+                val daysInMonth = selectedYearMonth.lengthOfMonth()
+                val dayExpensesMap = periodExpenses.groupBy {
+                    it.time.atZone(ZoneId.systemDefault()).dayOfMonth
+                }
+                val dayIncomesMap = periodIncomes.groupBy {
+                    it.time.atZone(ZoneId.systemDefault()).dayOfMonth
+                }
+
+                val maxDailyExp = (1..daysInMonth).maxOfOrNull { d ->
+                    dayExpensesMap[d]?.sumOf { it.value.amount.value } ?: 0.0
+                }?.coerceAtLeast(1.0) ?: 1.0
+
+                val dFormatter = DateTimeFormatter.ofPattern("EEE, dd MMM", Locale.US)
+                dailyHeatmapDays = (1..daysInMonth).map { d ->
+                    val dayDate = selectedYearMonth.atDay(d)
+                    val dExp = dayExpensesMap[d]?.sumOf { it.value.amount.value } ?: 0.0
+                    val dInc = dayIncomesMap[d]?.sumOf { it.value.amount.value } ?: 0.0
+                    val count = (dayExpensesMap[d]?.size ?: 0) + (dayIncomesMap[d]?.size ?: 0)
+                    val intensity = if (dExp > 0) (dExp / maxDailyExp).toFloat().coerceIn(0.15f, 1f) else 0f
+                    DailySpendingHeatmapDay(
+                        dayOfMonth = d,
+                        dayOfWeek = dayDate.dayOfWeek.value,
+                        dateString = dayDate.format(dFormatter),
+                        totalExpense = dExp,
+                        totalIncome = dInc,
+                        transactionCount = count,
+                        intensity = intensity
+                    )
+                }.toImmutableList()
+
+                selectedHeatmapDay = selectedHeatmapDay?.let { sel ->
+                    dailyHeatmapDays.find { it.dayOfMonth == sel.dayOfMonth }
+                }
+            } else {
+                dailyHeatmapDays = persistentListOf()
+                selectedHeatmapDay = null
+            }
 
             // Future Prediction & Runway
             val (daysElapsed, daysRemaining) = when (periodType) {

@@ -4,12 +4,14 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -1103,5 +1105,278 @@ private fun CategorySpendingRow(
                     .background(categoryColor)
             )
         }
+    }
+}
+
+@Composable
+fun DailySpendingHeatmapSection(
+    days: ImmutableList<DailySpendingHeatmapDay>,
+    selectedDay: DailySpendingHeatmapDay?,
+    currency: String,
+    onSelectDay: (DailySpendingHeatmapDay) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (days.isEmpty()) return
+
+    val zeroExpenseDays = days.count { it.totalExpense == 0.0 }
+    val firstDayOffset = ((days.firstOrNull()?.dayOfWeek ?: 1) - 1).coerceAtLeast(0)
+    val paddedList: List<DailySpendingHeatmapDay?> = List(firstDayOffset) { null } + days
+    val remainder = paddedList.size % 7
+    val fullPaddedList = if (remainder != 0) paddedList + List(7 - remainder) { null } else paddedList
+    val weeks = fullPaddedList.chunked(7)
+    val weekdayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(UI.colors.medium)
+            .padding(16.dp)
+    ) {
+        // Title & Zero-Spend Badge
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Daily Spending Activity",
+                style = UI.typo.b1.style(
+                    fontWeight = FontWeight.Bold,
+                    color = UI.colors.pureInverse
+                )
+            )
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Green.copy(alpha = 0.18f))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = "🎯 $zeroExpenseDays Zero-Spend Days",
+                    style = UI.typo.c.style(
+                        fontWeight = FontWeight.Bold,
+                        color = Green
+                    )
+                )
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = "Calendar heat map • Tap a day for breakdown",
+            style = UI.typo.c.style(
+                color = UI.colors.gray
+            )
+        )
+
+        Spacer(Modifier.height(14.dp))
+
+        // Weekday headers
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            weekdayLabels.forEach { label ->
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        style = UI.typo.c.style(
+                            fontWeight = FontWeight.Bold,
+                            color = UI.colors.gray
+                        )
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Calendar Grid
+        weeks.forEach { week ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 3.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                week.forEach { cell ->
+                    if (cell == null) {
+                        Spacer(modifier = Modifier.weight(1f).aspectRatio(1f))
+                    } else {
+                        val isSelected = selectedDay?.dayOfMonth == cell.dayOfMonth
+                        val cellBg = when {
+                            cell.totalExpense == 0.0 && cell.totalIncome > 0.0 -> Green.copy(alpha = 0.35f)
+                            cell.totalExpense == 0.0 -> UI.colors.pure.copy(alpha = 0.5f)
+                            cell.intensity < 0.35f -> Red.copy(alpha = 0.28f)
+                            cell.intensity < 0.70f -> Red.copy(alpha = 0.58f)
+                            else -> Red.copy(alpha = 0.88f)
+                        }
+
+                        val textColor = when {
+                            cell.intensity >= 0.70f -> Color.White
+                            cell.totalExpense == 0.0 && cell.totalIncome > 0.0 -> Green
+                            cell.totalExpense == 0.0 -> UI.colors.gray
+                            else -> UI.colors.pureInverse
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .padding(2.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(cellBg)
+                                .then(
+                                    if (isSelected) {
+                                        Modifier.border(2.dp, UI.colors.pureInverse, RoundedCornerShape(8.dp))
+                                    } else {
+                                        Modifier.border(0.5.dp, UI.colors.pure.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                    }
+                                )
+                                .clickable { onSelectDay(cell) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = cell.dayOfMonth.toString(),
+                                    style = UI.typo.c.style(
+                                        fontWeight = if (cell.intensity > 0.3f || isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = textColor
+                                    )
+                                )
+
+                                if (cell.totalIncome > 0.0 && cell.totalExpense == 0.0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(4.dp)
+                                            .clip(CircleShape)
+                                            .background(Green)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Selected Day Details Strip
+        if (selectedDay != null) {
+            Spacer(Modifier.height(12.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(UI.colors.pure)
+                    .padding(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = selectedDay.dateString,
+                        style = UI.typo.b2.style(
+                            fontWeight = FontWeight.Bold,
+                            color = UI.colors.pureInverse
+                        )
+                    )
+
+                    Text(
+                        text = "${selectedDay.transactionCount} transaction${if (selectedDay.transactionCount != 1) "s" else ""}",
+                        style = UI.typo.c.style(
+                            color = UI.colors.gray
+                        )
+                    )
+                }
+
+                Spacer(Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    if (selectedDay.totalExpense > 0.0) {
+                        Text(
+                            text = "Expense: -$currency${String.format(Locale.US, "%.2f", selectedDay.totalExpense)}",
+                            style = UI.typo.b2.style(
+                                fontWeight = FontWeight.Bold,
+                                color = Red
+                            )
+                        )
+                    } else {
+                        Text(
+                            text = "No expenses logged",
+                            style = UI.typo.b2.style(
+                                fontWeight = FontWeight.SemiBold,
+                                color = Green
+                            )
+                        )
+                    }
+
+                    if (selectedDay.totalIncome > 0.0) {
+                        Text(
+                            text = "Income: +$currency${String.format(Locale.US, "%.2f", selectedDay.totalIncome)}",
+                            style = UI.typo.b2.style(
+                                fontWeight = FontWeight.Bold,
+                                color = Green
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // Legend
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            HeatmapLegendItem(color = UI.colors.pure.copy(alpha = 0.5f), label = "Zero")
+            HeatmapLegendItem(color = Green.copy(alpha = 0.35f), label = "Income")
+            HeatmapLegendItem(color = Red.copy(alpha = 0.28f), label = "Low")
+            HeatmapLegendItem(color = Red.copy(alpha = 0.58f), label = "Medium")
+            HeatmapLegendItem(color = Red.copy(alpha = 0.88f), label = "High")
+        }
+    }
+}
+
+@Composable
+private fun HeatmapLegendItem(
+    color: Color,
+    label: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(color)
+        )
+        Text(
+            text = label,
+            style = UI.typo.c.style(
+                color = UI.colors.gray,
+                fontWeight = FontWeight.Medium
+            )
+        )
     }
 }

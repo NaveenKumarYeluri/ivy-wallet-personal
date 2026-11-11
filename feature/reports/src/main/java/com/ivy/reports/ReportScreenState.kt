@@ -37,6 +37,17 @@ data class CategorySpendingItem(
 )
 
 @Suppress("DataClassDefaultValues")
+data class DailySpendingHeatmapDay(
+    val dayOfMonth: Int,
+    val dayOfWeek: Int, // 1 = Monday ... 7 = Sunday
+    val dateString: String,
+    val totalExpense: Double,
+    val totalIncome: Double,
+    val transactionCount: Int,
+    val intensity: Float // 0f (no spending) to 1f (peak spending)
+)
+
+@Suppress("DataClassDefaultValues")
 data class ReportScreenState(
     val baseCurrency: String = "",
     val balance: Double = 0.0,
@@ -85,5 +96,8 @@ data class ReportScreenState(
     val endingBalance: Double = 0.0,
     val peakBalance: Double = 0.0,
     val lowestBalance: Double = 0.0,
-    val netChange: Double = 0.0
+    val netChange: Double = 0.0,
+    // Daily spending heatmap
+    val dailyHeatmapDays: ImmutableList<DailySpendingHeatmapDay> = persistentListOf(),
+    val selectedHeatmapDay: DailySpendingHeatmapDay? = null
 )

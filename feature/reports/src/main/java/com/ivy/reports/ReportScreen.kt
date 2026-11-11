@@ -255,7 +255,22 @@ fun BoxWithConstraintsScope.ReportScreenContent(
             Spacer(Modifier.height(16.dp))
         }
 
-        // 5. Income & Expense Comparison Graph
+        // 5. Daily Spending Activity Heatmap (Monthly view)
+        if (state.dailyHeatmapDays.isNotEmpty()) {
+            item {
+                DailySpendingHeatmapSection(
+                    days = state.dailyHeatmapDays,
+                    selectedDay = state.selectedHeatmapDay,
+                    currency = state.baseCurrency,
+                    onSelectDay = {
+                        onEventHandler.invoke(ReportScreenEvent.OnSelectHeatmapDay(it))
+                    }
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+
+        // 6. Income & Expense Comparison Graph
         if (state.intervalGraphItems.isNotEmpty()) {
             item {
                 IncomeExpenseComparisonGraph(

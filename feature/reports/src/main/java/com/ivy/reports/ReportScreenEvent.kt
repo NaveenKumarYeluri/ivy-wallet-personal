@@ -30,4 +30,5 @@ sealed class ReportScreenEvent {
     data object OnNextPeriod : ReportScreenEvent()
     data class OnTogglePieChartMode(val type: TransactionType) : ReportScreenEvent()
     data class OnToggleCategoryViewMode(val type: TransactionType) : ReportScreenEvent()
+    data class OnSelectHeatmapDay(val day: DailySpendingHeatmapDay?) : ReportScreenEvent()
 }
