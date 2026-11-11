@@ -26,7 +26,7 @@ fun IvySwitch(
     modifier: Modifier = Modifier,
     enabled: Boolean,
     activeColor: Color = UI.colors.primary,
-    onEnabledChange: (checked: Boolean) -> Unit
+    onEnabledChange: ((checked: Boolean) -> Unit)? = null
 ) {
     val color by animateColorAsState(
         targetValue = if (enabled) activeColor else Gray,
@@ -38,9 +38,15 @@ fun IvySwitch(
             .width(40.dp)
             .clip(UI.shapes.rFull)
             .border(2.dp, color, UI.shapes.rFull)
-            .clickable {
-                onEnabledChange(!enabled)
-            }
+            .then(
+                if (onEnabledChange != null) {
+                    Modifier.clickable {
+                        onEnabledChange(!enabled)
+                    }
+                } else {
+                    Modifier
+                }
+            )
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

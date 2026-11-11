@@ -17,7 +17,7 @@ android {
         applicationId = "com.ivy.wallet.offline"
         minSdk = libs.versions.min.sdk.get().toInt()
         targetSdk = libs.versions.target.sdk.get().toInt()
-        versionName = libs.versions.version.name.get()
+        versionName = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd"))
         versionCode = libs.versions.version.code.get().toInt()
     }
 

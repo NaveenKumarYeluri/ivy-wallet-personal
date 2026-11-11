@@ -133,6 +133,7 @@ class HomeViewModel @Inject constructor(
     private var hideBalance by mutableStateOf(false)
     private var temporarilyRevealedBalance by mutableStateOf(false)
     private var hideIncome by mutableStateOf(false)
+    private var temporarilyRevealedIncome by mutableStateOf(false)
     private var expanded by mutableStateOf(true)
     private var expenseTrendPercent by mutableStateOf<Double?>(null)
     private var incomeTrendPercent by mutableStateOf<Double?>(null)
@@ -247,6 +248,7 @@ class HomeViewModel @Inject constructor(
 
     @Composable
     private fun getHideIncome(): Boolean {
+        if (temporarilyRevealedIncome) return false
         return hideIncome
     }
 
@@ -489,12 +491,12 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun onHiddenIncomeClick() {
-        hideIncome = false
+        temporarilyRevealedIncome = true
 
-        // Showing Balance fow 5s
+        // Showing Income for 5s
         delay(5000)
 
-        hideIncome = true
+        temporarilyRevealedIncome = false
     }
 
     private fun switchTheme() {

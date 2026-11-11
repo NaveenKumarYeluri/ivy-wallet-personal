@@ -5,7 +5,7 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-100%25-purple.svg)](https://kotlinlang.org/)
 [![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20%2B%20Material3-brightgreen.svg)](https://developer.android.com/jetpack/compose)
 [![Privacy](https://img.shields.io/badge/Privacy-100%25%20Offline-success.svg)](#-privacy--offline-first)
-[![APK Size](https://img.shields.io/badge/Release%20APK-~7.1%20MB-blueviolet.svg)](#-performance--optimization)
+[![APK Size](https://img.shields.io/badge/Release%20APK-~12.7%20MB-blueviolet.svg)](#-performance--optimization)
 
 **Ivy Wallet Personal** is an offline-first, privacy-focused, and modern personal finance manager for Android. Built with 100% Kotlin and Jetpack Compose, it gives you complete ownership over your financial data with zero telemetry, zero ads, and zero server dependencies.
 
@@ -29,7 +29,7 @@ Key contributions developed with AI assistance include:
 - **Homescreen Quick Log System**: Designing and implementing 1-tap quick logging with full custom template creation, editing, and persistent storage.
 - **Material 3 Dynamic Theming**: Overhauling legacy hardcoded green/red colors into dynamic, theme-adaptive semantic colors for income, expense, date dividers, and statistics charts.
 - **Privacy & Settings Fixes**: Implementing account total balance masking with tap-to-peek privacy across account cards and Home screen, along with case-insensitive alphabetical category sorting.
-- **Architecture & Optimization**: Streamlining offline fixed-currency workflows, removing obsolete network polling, reducing APK size to ~7.1 MB with R8 full-mode optimization, and modernizing Gradle CI/CD pipelines.
+- **Architecture & Optimization**: Streamlining offline fixed-currency workflows, removing obsolete network polling, reducing APK size to ~12.7 MB with R8 full-mode optimization, and modernizing Gradle CI/CD pipelines.
 
 ---
 
@@ -80,7 +80,7 @@ Key contributions developed with AI assistance include:
 - **Detailed Insights & Analytics**: Visual pie charts, category breakdowns, and monthly cash flow metrics.
 
 ### 🚀 Performance & Optimization
-- **Ultra-Compact Size**: Reduced release APK size down to **~7.1 MB** (down from legacy 35MB+ builds) via R8 full-mode shrinking, ProGuard optimizations, and unused resource stripping.
+- **Ultra-Compact Size**: Reduced release APK size down to **~12.7 MB** (down from legacy 35MB+ builds) via R8 full-mode shrinking, ProGuard optimizations, and unused resource stripping.
 - **Modern Android & Tooling**: Built on target API 34+ with modern Gradle 8.11.1 and automated GitHub Actions CI.
 
 ---

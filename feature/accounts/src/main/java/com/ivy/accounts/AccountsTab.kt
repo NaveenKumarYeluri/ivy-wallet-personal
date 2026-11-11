@@ -160,6 +160,7 @@ private fun BoxWithConstraintsScope.UI(
                 accountData = it,
                 compactModeEnabled = state.compactAccountsModeEnabled,
                 hideTotalBalance = state.hideTotalBalance,
+                hideIncome = state.hideIncome,
                 onBalanceClick = {
                     nav.navigateTo(
                         TransactionsScreen(
@@ -217,6 +218,7 @@ private fun AccountCard(
     accountData: AccountData,
     compactModeEnabled: Boolean,
     hideTotalBalance: Boolean = false,
+    hideIncome: Boolean = false,
     onBalanceClick: () -> Unit,
     onClick: () -> Unit
 ) {
@@ -262,6 +264,7 @@ private fun AccountCard(
                 currency = currency,
                 incomeLabel = stringResource(R.string.month_income),
                 income = accountData.monthlyIncome,
+                hideIncome = hideIncome,
                 expensesLabel = stringResource(R.string.month_expenses),
                 expenses = accountData.monthlyExpenses
             )

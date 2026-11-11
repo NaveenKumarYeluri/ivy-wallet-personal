@@ -803,9 +803,7 @@ private fun AppSwitch(
 
         // Spacer(Modifier.weight(1f))
 
-        IvySwitch(enabled = lockApp) {
-            onSetLockApp(it)
-        }
+        IvySwitch(enabled = lockApp)
 
         Spacer(Modifier.width(16.dp))
     }

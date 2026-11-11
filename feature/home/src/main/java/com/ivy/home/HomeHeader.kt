@@ -271,7 +271,7 @@ fun CashFlowInfo(
         )
 
         val cashflow = monthlyIncome - monthlyExpenses
-        if (cashflow != 0.0 && !hideBalance) {
+        if (cashflow != 0.0 && !hideBalance && !hideIncome) {
             CashFlowInsightsCard(
                 cashflow = cashflow,
                 monthlyIncome = monthlyIncome,
@@ -380,6 +380,7 @@ private fun IncomeExpenses(
             label = stringResource(R.string.income),
             currency = currency,
             amount = monthlyIncome,
+            hiddenMode = hideIncome,
             trendPercent = incomeTrendPercent,
             testTag = "home_card_income"
         ) {
@@ -428,6 +429,7 @@ private fun RowScope.HeaderCard(
     currency: String,
     amount: Double,
     testTag: String,
+    hiddenMode: Boolean = false,
     trendPercent: Double? = null,
     onClick: () -> Unit,
 ) {
@@ -477,17 +479,28 @@ private fun RowScope.HeaderCard(
         ) {
             Spacer(Modifier.width(20.dp))
 
-            AmountCurrencyB1(
-                amount = amount,
-                currency = currency,
-                textColor = textColor,
-                shortenBigNumbers = true,
-            )
+            if (hiddenMode) {
+                Text(
+                    modifier = Modifier.testTag("amount_currency_b1"),
+                    text = "****",
+                    style = UI.typo.nB1.style(
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+                )
+            } else {
+                AmountCurrencyB1(
+                    amount = amount,
+                    currency = currency,
+                    textColor = textColor,
+                    shortenBigNumbers = true,
+                )
+            }
 
             Spacer(Modifier.width(4.dp))
         }
 
-        if (trendPercent != null) {
+        if (trendPercent != null && !hiddenMode) {
             Spacer(Modifier.height(4.dp))
             Row(
                 modifier = Modifier

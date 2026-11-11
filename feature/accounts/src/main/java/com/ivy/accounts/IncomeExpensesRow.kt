@@ -27,6 +27,7 @@ fun IncomeExpensesRow(
     expenses: Double,
     currency: String,
     modifier: Modifier = Modifier,
+    hideIncome: Boolean = false,
     textColor: Color = UI.colors.pureInverse,
     dividerColor: Color = UI.colors.medium,
     incomeLabel: String = stringResource(R.string.income_uppercase),
@@ -47,7 +48,8 @@ fun IncomeExpensesRow(
             label = incomeLabel,
             amount = income,
             currency = currency,
-            center = center
+            center = center,
+            hiddenMode = hideIncome
         )
 
         if (center) {
@@ -94,7 +96,8 @@ private fun LabelAmountColumn(
     amount: Double,
     currency: String,
     textColor: Color,
-    center: Boolean
+    center: Boolean,
+    hiddenMode: Boolean = false,
 ) {
     Column(
         horizontalAlignment = if (center) Alignment.CenterHorizontally else Alignment.Start
@@ -112,11 +115,21 @@ private fun LabelAmountColumn(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AmountCurrencyB1(
-                textColor = textColor,
-                amount = amount,
-                currency = currency
-            )
+            if (hiddenMode) {
+                Text(
+                    text = "****",
+                    style = UI.typo.nB1.style(
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+                )
+            } else {
+                AmountCurrencyB1(
+                    textColor = textColor,
+                    amount = amount,
+                    currency = currency
+                )
+            }
         }
     }
 }

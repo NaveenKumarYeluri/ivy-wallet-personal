@@ -15,4 +15,5 @@ data class AccountsState(
     val reorderVisible: Boolean,
     val compactAccountsModeEnabled: Boolean,
     val hideTotalBalance: Boolean,
+    val hideIncome: Boolean = false,
 )

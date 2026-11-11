@@ -91,8 +91,14 @@ class AccountsViewModel @Inject constructor(
             totalBalanceWithoutExcludedText = getTotalBalanceWithoutExcludedText(),
             reorderVisible = getReorderVisible(),
             compactAccountsModeEnabled = getCompactAccountsMode(),
-            hideTotalBalance = getHideTotalBalance()
+            hideTotalBalance = getHideTotalBalance(),
+            hideIncome = getHideIncome()
         )
+    }
+
+    @Composable
+    private fun getHideIncome(): Boolean {
+        return sharedPrefs.getBoolean(SharedPrefs.HIDE_INCOME, false)
     }
 
     @Composable
