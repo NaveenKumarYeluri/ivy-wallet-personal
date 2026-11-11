@@ -166,7 +166,7 @@ private fun BoxWithConstraintsScope.UI(
                 Text(
                     modifier = Modifier.padding(start = 24.dp),
                     text = "Bills Due on $formattedDate",
-                    style = UI.typo.h3.style(
+                    style = UI.typo.b1.style(
                         fontWeight = FontWeight.Bold,
                         color = UI.colors.pureInverse
                     )

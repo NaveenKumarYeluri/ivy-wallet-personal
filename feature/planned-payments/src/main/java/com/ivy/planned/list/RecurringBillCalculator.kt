@@ -17,25 +17,25 @@ object RecurringBillCalculator {
         }
 
         val n = (rule.intervalN ?: 1).coerceAtLeast(1)
-        val intervalType = rule.intervalType ?: IntervalType.MONTHS
+        val intervalType = rule.intervalType ?: IntervalType.MONTH
 
         return when (intervalType) {
-            IntervalType.DAYS -> {
+            IntervalType.DAY -> {
                 val daysDiff = ChronoUnit.DAYS.between(start, date)
                 daysDiff >= 0 && daysDiff % n == 0L
             }
-            IntervalType.WEEKS -> {
+            IntervalType.WEEK -> {
                 val weeksDiff = ChronoUnit.WEEKS.between(start, date)
                 date.dayOfWeek == start.dayOfWeek && weeksDiff >= 0 && weeksDiff % n == 0L
             }
-            IntervalType.MONTHS -> {
+            IntervalType.MONTH -> {
                 val monthsDiff = ChronoUnit.MONTHS.between(start.withDayOfMonth(1), date.withDayOfMonth(1))
                 if (monthsDiff >= 0 && monthsDiff % n == 0L) {
                     val targetDay = start.dayOfMonth.coerceAtMost(date.lengthOfMonth())
                     date.dayOfMonth == targetDay
                 } else false
             }
-            IntervalType.YEARS -> {
+            IntervalType.YEAR -> {
                 val yearsDiff = ChronoUnit.YEARS.between(start.withDayOfYear(1), date.withDayOfYear(1))
                 if (yearsDiff >= 0 && yearsDiff % n == 0L) {
                     date.month == start.month && date.dayOfMonth == start.dayOfMonth.coerceAtMost(date.lengthOfMonth())

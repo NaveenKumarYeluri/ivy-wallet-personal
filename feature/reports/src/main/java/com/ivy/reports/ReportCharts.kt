@@ -28,8 +28,7 @@ import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.Red
-import com.ivy.wallet.ui.theme.components.ItemIconMDefaultIcon
-import com.ivy.wallet.ui.theme.formatDouble
+import com.ivy.wallet.ui.theme.components.ItemIconM
 import kotlinx.collections.immutable.ImmutableList
 import java.util.Locale
 
@@ -75,7 +74,7 @@ fun CashFlowBarChart(
             val netColor = if (net >= 0) Green else Red
             val netSign = if (net >= 0) "+" else ""
             Text(
-                text = "$netSign$currency${formatDouble(net)}",
+                text = "$netSign$currency${String.format(Locale.US, "%.2f", net)}",
                 style = UI.typo.b2.style(
                     fontWeight = FontWeight.ExtraBold,
                     color = netColor
@@ -118,7 +117,7 @@ fun CashFlowBarChart(
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = "Income: $currency${formatDouble(income)} (${String.format(Locale.US, "%.1f", incomePercent)}%)",
+                    text = "Income: $currency${String.format(Locale.US, "%.2f", income)} (${String.format(Locale.US, "%.1f", incomePercent)}%)",
                     style = UI.typo.c.style(
                         fontWeight = FontWeight.Medium,
                         color = UI.colors.pureInverse
@@ -135,7 +134,7 @@ fun CashFlowBarChart(
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = "Expenses: $currency${formatDouble(expenses)} (${String.format(Locale.US, "%.1f", expensePercent)}%)",
+                    text = "Expenses: $currency${String.format(Locale.US, "%.2f", expenses)} (${String.format(Locale.US, "%.1f", expensePercent)}%)",
                     style = UI.typo.c.style(
                         fontWeight = FontWeight.Medium,
                         color = UI.colors.pureInverse
@@ -220,7 +219,7 @@ fun TopSpendingCategoriesSection(
     ) {
         Text(
             text = "Category Spending Breakdown",
-            style = UI.typo.h3.style(
+            style = UI.typo.b1.style(
                 fontWeight = FontWeight.Bold,
                 color = UI.colors.pureInverse
             )
@@ -273,7 +272,7 @@ private fun CategorySpendingRow(
                         .background(categoryColor.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    ItemIconMDefaultIcon(
+                    ItemIconM(
                         iconName = item.categoryIcon,
                         tint = categoryColor
                     )
@@ -300,7 +299,7 @@ private fun CategorySpendingRow(
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "$currency${formatDouble(item.totalAmount)}",
+                    text = "$currency${String.format(Locale.US, "%.2f", item.totalAmount)}",
                     style = UI.typo.b2.style(
                         fontWeight = FontWeight.Bold,
                         color = UI.colors.pureInverse

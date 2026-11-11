@@ -354,12 +354,12 @@ class ReportViewModel @Inject constructor(
                 .groupBy { it.category?.value }
                 .map { (catId, trns) ->
                     val cat = catId?.let { categoryMap[it] } ?: unSpecifiedCategory
-                    val sum = trns.sumOf { (it as? Expense)?.value?.toDouble() ?: 0.0 }
+                    val sum = trns.sumOf { (it as? Expense)?.value?.amount?.value ?: 0.0 }
                     val pct = ((sum / totalExpenseVal) * 100).toFloat().coerceIn(0f, 100f)
                     CategorySpendingItem(
                         categoryName = cat.name.value,
                         categoryColor = cat.color.value,
-                        categoryIcon = cat.icon?.value,
+                        categoryIcon = cat.icon?.id,
                         totalAmount = sum,
                         percentage = pct,
                         transactionCount = trns.size
@@ -687,7 +687,7 @@ class ReportViewModel @Inject constructor(
 
     private fun shareSummary(context: Context) {
         val filter = filter ?: return
-        val periodText = filter.period?.name ?: "All Time"
+        val periodText = filter.period?.toString() ?: "Selected Period"
         val currency = baseCurrency
         val net = income - expenses
         val netSign = if (net >= 0) "+" else ""

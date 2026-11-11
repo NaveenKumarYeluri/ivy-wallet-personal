@@ -413,7 +413,7 @@ private fun Toolbar(
 
         // Share Summary
         CircleButtonFilled(
-            icon = R.drawable.ic_share_xs
+            icon = R.drawable.ic_share
         ) {
             onShareSummary()
         }

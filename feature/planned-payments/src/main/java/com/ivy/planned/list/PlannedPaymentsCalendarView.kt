@@ -33,7 +33,6 @@ import com.ivy.legacy.datamodel.Account
 import com.ivy.legacy.datamodel.PlannedPaymentRule
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.Red
-import com.ivy.wallet.ui.theme.formatDouble
 import kotlinx.collections.immutable.ImmutableList
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -130,7 +129,7 @@ fun MonthNavigationHeader(
         val monthName = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
         Text(
             text = "$monthName ${currentMonth.year}",
-            style = UI.typo.h3.style(
+            style = UI.typo.b1.style(
                 fontWeight = FontWeight.ExtraBold,
                 color = UI.colors.pureInverse
             )
@@ -180,7 +179,7 @@ fun MonthlyPlannedSummaryCard(
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "+$currency${formatDouble(expectedIncome)}",
+                text = "+$currency${String.format(Locale.US, "%.2f", expectedIncome)}",
                 style = UI.typo.b1.style(
                     fontWeight = FontWeight.Bold,
                     color = Green
@@ -197,7 +196,7 @@ fun MonthlyPlannedSummaryCard(
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "-$currency${formatDouble(expectedExpenses)}",
+                text = "-$currency${String.format(Locale.US, "%.2f", expectedExpenses)}",
                 style = UI.typo.b1.style(
                     fontWeight = FontWeight.Bold,
                     color = Red
