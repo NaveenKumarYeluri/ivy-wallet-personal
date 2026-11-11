@@ -1,3 +1,7 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -17,7 +21,7 @@ android {
         applicationId = "com.ivy.wallet.offline"
         minSdk = libs.versions.min.sdk.get().toInt()
         targetSdk = libs.versions.target.sdk.get().toInt()
-        versionName = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+        versionName = SimpleDateFormat("yyyy.MM.dd", Locale.US).format(Date())
         versionCode = libs.versions.version.code.get().toInt()
     }
 
