@@ -2,8 +2,11 @@ package com.ivy.planned.list
 
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -53,42 +56,166 @@ private fun BoxWithConstraintsScope.UI(
     state: PlannedPaymentsScreenState,
     onEvent: (PlannedPaymentsScreenEvent) -> Unit = {}
 ) {
-    PlannedPaymentsLazyColumn(
-        Header = {
-            Spacer(Modifier.height(32.dp))
-
-            Text(
-                modifier = Modifier.padding(start = 24.dp),
-                text = stringResource(R.string.planned_payments_inline),
-                style = UI.typo.h2.style(
-                    fontWeight = FontWeight.ExtraBold,
-                    color = UI.colors.pureInverse
-                )
-            )
-
-            Spacer(Modifier.height(24.dp))
-        },
-        currency = state.currency,
-        categories = state.categories,
-        accounts = state.accounts,
-        oneTime = state.oneTimePlannedPayment,
-        oneTimeIncome = state.oneTimeIncome,
-        oneTimeExpenses = state.oneTimeExpenses,
-        recurring = state.recurringPlannedPayment,
-        recurringIncome = state.recurringIncome,
-        recurringExpenses = state.recurringExpenses,
-        oneTimeExpanded = state.isOneTimePaymentsExpanded,
-        recurringExpanded = state.isRecurringPaymentsExpanded,
-        setOneTimeExpanded = {
-            onEvent(PlannedPaymentsScreenEvent.OnOneTimePaymentsExpanded(it))
-        },
-        setRecurringExpanded = {
-            onEvent(PlannedPaymentsScreenEvent.OnRecurringPaymentsExpanded(it))
-        },
-        listState = rememberScrollPositionListState(key = "plannedPayments")
-    )
-
     val nav = navigation()
+
+    if (state.viewMode == PlannedPaymentsViewMode.LIST) {
+        PlannedPaymentsLazyColumn(
+            Header = {
+                Spacer(Modifier.height(32.dp))
+
+                Text(
+                    modifier = Modifier.padding(start = 24.dp),
+                    text = stringResource(R.string.planned_payments_inline),
+                    style = UI.typo.h2.style(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = UI.colors.pureInverse
+                    )
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                PlannedPaymentsViewSwitcher(
+                    viewMode = state.viewMode,
+                    onViewModeChanged = {
+                        onEvent(PlannedPaymentsScreenEvent.OnViewModeChanged(it))
+                    }
+                )
+
+                Spacer(Modifier.height(20.dp))
+            },
+            currency = state.currency,
+            categories = state.categories,
+            accounts = state.accounts,
+            oneTime = state.oneTimePlannedPayment,
+            oneTimeIncome = state.oneTimeIncome,
+            oneTimeExpenses = state.oneTimeExpenses,
+            recurring = state.recurringPlannedPayment,
+            recurringIncome = state.recurringIncome,
+            recurringExpenses = state.recurringExpenses,
+            oneTimeExpanded = state.isOneTimePaymentsExpanded,
+            recurringExpanded = state.isRecurringPaymentsExpanded,
+            setOneTimeExpanded = {
+                onEvent(PlannedPaymentsScreenEvent.OnOneTimePaymentsExpanded(it))
+            },
+            setRecurringExpanded = {
+                onEvent(PlannedPaymentsScreenEvent.OnRecurringPaymentsExpanded(it))
+            },
+            listState = rememberScrollPositionListState(key = "plannedPayments")
+        )
+    } else {
+        val calendarListState = rememberScrollPositionListState(key = "plannedPaymentsCalendar")
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = calendarListState
+        ) {
+            item {
+                Spacer(Modifier.height(32.dp))
+
+                Text(
+                    modifier = Modifier.padding(start = 24.dp),
+                    text = stringResource(R.string.planned_payments_inline),
+                    style = UI.typo.h2.style(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = UI.colors.pureInverse
+                    )
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                PlannedPaymentsViewSwitcher(
+                    viewMode = state.viewMode,
+                    onViewModeChanged = {
+                        onEvent(PlannedPaymentsScreenEvent.OnViewModeChanged(it))
+                    }
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                MonthNavigationHeader(
+                    currentMonth = state.selectedMonth,
+                    onPreviousMonth = {
+                        onEvent(PlannedPaymentsScreenEvent.OnMonthChanged(state.selectedMonth.minusMonths(1)))
+                    },
+                    onNextMonth = {
+                        onEvent(PlannedPaymentsScreenEvent.OnMonthChanged(state.selectedMonth.plusMonths(1)))
+                    }
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                MonthlyPlannedSummaryCard(
+                    expectedIncome = state.monthlyExpectedIncome,
+                    expectedExpenses = state.monthlyExpectedExpenses,
+                    currency = state.currency
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                CalendarGrid(
+                    month = state.selectedMonth,
+                    selectedDate = state.selectedDate,
+                    datesWithBills = state.datesWithBills,
+                    onDateSelected = {
+                        onEvent(PlannedPaymentsScreenEvent.OnDateSelected(it))
+                    }
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                val formattedDate = "${state.selectedDate.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault())} ${state.selectedDate.dayOfMonth}"
+                Text(
+                    modifier = Modifier.padding(start = 24.dp),
+                    text = "Bills Due on $formattedDate",
+                    style = UI.typo.h3.style(
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.pureInverse
+                    )
+                )
+
+                Spacer(Modifier.height(8.dp))
+            }
+
+            if (state.billsForSelectedDate.isEmpty()) {
+                item {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 24.dp),
+                        text = "No bills scheduled for this date",
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        style = UI.typo.b2.style(
+                            color = UI.colors.gray
+                        )
+                    )
+                }
+            } else {
+                items(
+                    count = state.billsForSelectedDate.size,
+                    key = { state.billsForSelectedDate[it].id }
+                ) { index ->
+                    PlannedPaymentCard(
+                        baseCurrency = state.currency,
+                        categories = state.categories,
+                        accounts = state.accounts,
+                        plannedPayment = state.billsForSelectedDate[index],
+                        onClick = {
+                            nav.navigateTo(
+                                EditPlannedScreen(
+                                    type = it.type,
+                                    plannedPaymentRuleId = it.id
+                                )
+                            )
+                        }
+                    )
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(96.dp))
+            }
+        }
+    }
+
     PlannedPaymentsBottomBar(
         onClose = {
             nav.back()

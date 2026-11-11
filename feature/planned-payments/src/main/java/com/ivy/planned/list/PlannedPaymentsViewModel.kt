@@ -46,6 +46,13 @@ class PlannedPaymentsViewModel @Inject constructor(
     private var recurringExpenses by mutableDoubleStateOf(0.0)
     private var isOneTimePaymentsExpanded by mutableStateOf(true)
     private var isRecurringPaymentsExpanded by mutableStateOf(true)
+    private var viewMode by mutableStateOf(PlannedPaymentsViewMode.LIST)
+    private var selectedMonth by mutableStateOf(java.time.YearMonth.now())
+    private var selectedDate by mutableStateOf(java.time.LocalDate.now())
+    private var datesWithBills by mutableStateOf<Set<java.time.LocalDate>>(emptySet())
+    private var billsForSelectedDate by mutableStateOf<ImmutableList<PlannedPaymentRule>>(persistentListOf())
+    private var monthlyExpectedIncome by mutableDoubleStateOf(0.0)
+    private var monthlyExpectedExpenses by mutableDoubleStateOf(0.0)
 
     @Composable
     override fun uiState(): PlannedPaymentsScreenState {
@@ -64,7 +71,14 @@ class PlannedPaymentsViewModel @Inject constructor(
             recurringPlannedPayment = getRecurringPlannedPayment(),
             oneTimePlannedPayment = getOneTimePlannedPayment(),
             isOneTimePaymentsExpanded = getOneTimePaymentsExpanded(),
-            isRecurringPaymentsExpanded = getRecurringPaymentsExpanded()
+            isRecurringPaymentsExpanded = getRecurringPaymentsExpanded(),
+            viewMode = viewMode,
+            selectedMonth = selectedMonth,
+            selectedDate = selectedDate,
+            datesWithBills = datesWithBills,
+            billsForSelectedDate = billsForSelectedDate,
+            monthlyExpectedIncome = monthlyExpectedIncome,
+            monthlyExpectedExpenses = monthlyExpectedExpenses
         )
     }
 
@@ -131,7 +145,39 @@ class PlannedPaymentsViewModel @Inject constructor(
             is PlannedPaymentsScreenEvent.OnRecurringPaymentsExpanded -> {
                 isRecurringPaymentsExpanded = event.isExpanded
             }
+            is PlannedPaymentsScreenEvent.OnViewModeChanged -> {
+                viewMode = event.viewMode
+                updateCalendarData()
+            }
+            is PlannedPaymentsScreenEvent.OnMonthChanged -> {
+                selectedMonth = event.month
+                updateCalendarData()
+            }
+            is PlannedPaymentsScreenEvent.OnDateSelected -> {
+                selectedDate = event.date
+                val allRules = oneTimePlannedPayment + recurringPlannedPayment
+                billsForSelectedDate = RecurringBillCalculator.getBillsForDate(allRules, event.date).toImmutableList()
+            }
         }
+    }
+
+    private fun updateCalendarData() {
+        val allRules = oneTimePlannedPayment + recurringPlannedPayment
+        datesWithBills = RecurringBillCalculator.getDatesWithBillsInMonth(allRules, selectedMonth)
+        billsForSelectedDate = RecurringBillCalculator.getBillsForDate(allRules, selectedDate).toImmutableList()
+
+        var incomeSum = 0.0
+        var expenseSum = 0.0
+        for (day in 1..selectedMonth.lengthOfMonth()) {
+            val d = selectedMonth.atDay(day)
+            val bills = RecurringBillCalculator.getBillsForDate(allRules, d)
+            for (b in bills) {
+                if (b.type == com.ivy.base.model.TransactionType.INCOME) incomeSum += b.amount
+                else if (b.type == com.ivy.base.model.TransactionType.EXPENSE) expenseSum += b.amount
+            }
+        }
+        monthlyExpectedIncome = incomeSum
+        monthlyExpectedExpenses = expenseSum
     }
 
     private fun start() {
@@ -151,6 +197,8 @@ class PlannedPaymentsViewModel @Inject constructor(
                 ioThread { plannedPaymentsLogic.recurring() }.toImmutableList()
             recurringIncome = ioThread { plannedPaymentsLogic.recurringIncome() }
             recurringExpenses = ioThread { plannedPaymentsLogic.recurringExpenses() }
+
+            updateCalendarData()
         }
     }
 }

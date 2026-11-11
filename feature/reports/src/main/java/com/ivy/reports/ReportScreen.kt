@@ -130,6 +130,9 @@ private fun BoxWithConstraintsScope.UI(
                 onExport = {
                     onEventHandler.invoke(ReportScreenEvent.OnExport(context = context))
                 },
+                onShareSummary = {
+                    onEventHandler.invoke(ReportScreenEvent.OnShareSummary(context = context))
+                },
                 onFilter = {
                     onEventHandler.invoke(
                         ReportScreenEvent.OnFilterOverlayVisible(
@@ -225,6 +228,38 @@ private fun BoxWithConstraintsScope.UI(
         }
 
         if (state.filter != null) {
+            item {
+                Spacer(Modifier.height(16.dp))
+                CashFlowBarChart(
+                    income = state.income,
+                    expenses = state.expenses,
+                    currency = state.baseCurrency
+                )
+            }
+
+            item {
+                Spacer(Modifier.height(12.dp))
+                SavingsRateCard(
+                    savingsRate = state.savingsRate,
+                    income = state.income,
+                    expenses = state.expenses,
+                    currency = state.baseCurrency
+                )
+            }
+
+            if (state.topSpendingCategories.isNotEmpty()) {
+                item {
+                    Spacer(Modifier.height(16.dp))
+                    TopSpendingCategoriesSection(
+                        categories = state.topSpendingCategories,
+                        currency = state.baseCurrency
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    TransactionsDividerLine(paddingHorizontal = 24.dp)
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+
             transactions(
                 baseData = AppBaseData(
                     baseCurrency = state.baseCurrency,
@@ -364,6 +399,7 @@ private fun NoFilterEmptyState(
 @Composable
 private fun Toolbar(
     onExport: () -> Unit,
+    onShareSummary: () -> Unit,
     onFilter: () -> Unit
 ) {
     val nav = navigation()
@@ -374,6 +410,15 @@ private fun Toolbar(
         }
     ) {
         Spacer(Modifier.weight(1f))
+
+        // Share Summary
+        CircleButtonFilled(
+            icon = R.drawable.ic_share_xs
+        ) {
+            onShareSummary()
+        }
+
+        Spacer(Modifier.width(12.dp))
 
         // Export CSV
         IvyOutlinedButton(
@@ -388,7 +433,7 @@ private fun Toolbar(
             onExport()
         }
 
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(12.dp))
 
         // Filter
         CircleButtonFilled(

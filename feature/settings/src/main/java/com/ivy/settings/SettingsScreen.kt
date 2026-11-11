@@ -116,6 +116,9 @@ fun BoxWithConstraintsScope.SettingsScreen() {
         onBackupData = {
             viewModel.onEvent(SettingsEvent.BackupData(rootScreen))
         },
+        onBackupEncryptedVault = {
+            viewModel.onEvent(SettingsEvent.BackupEncryptedVault(rootScreen, it))
+        },
         onExportToCSV = {
             viewModel.onEvent(SettingsEvent.ExportToCsv(rootScreen))
         },
@@ -179,6 +182,7 @@ private fun BoxWithConstraintsScope.UI(
     treatTransfersAsIncomeExpense: Boolean = false,
     onSetName: (String) -> Unit = {},
     onBackupData: () -> Unit = {},
+    onBackupEncryptedVault: (String) -> Unit = {},
     onExportToCSV: () -> Unit = {},
     onSetLockApp: (Boolean) -> Unit = {},
     onSetShowNotifications: (Boolean) -> Unit = {},
@@ -200,6 +204,7 @@ private fun BoxWithConstraintsScope.UI(
     var deleteCloudDataModalVisible by remember { mutableStateOf(false) }
     var deleteAllDataModalVisible by remember { mutableStateOf(false) }
     var deleteAllDataModalFinalVisible by remember { mutableStateOf(false) }
+    var vaultModalVisible by remember { mutableStateOf(false) }
     val nav = navigation()
 
     LazyColumn(
@@ -276,6 +281,17 @@ private fun BoxWithConstraintsScope.UI(
                 iconPadding = 8.dp
             ) {
                 onBackupData()
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            SettingsDefaultButton(
+                icon = R.drawable.ic_vue_security_shield_security,
+                text = "Encrypted Vault Backup",
+                description = "AES-256 password-protected backup (.ivybkp)",
+                iconPadding = 8.dp
+            ) {
+                vaultModalVisible = true
             }
 
             Spacer(Modifier.height(12.dp))
@@ -550,6 +566,13 @@ private fun BoxWithConstraintsScope.UI(
         dismiss = { nameModalVisible = false }
     ) {
         onSetName(it)
+    }
+
+    VaultPasswordModal(
+        visible = vaultModalVisible,
+        dismiss = { vaultModalVisible = false }
+    ) { password ->
+        onBackupEncryptedVault(password)
     }
 
     ChooseStartDateOfMonthModal(

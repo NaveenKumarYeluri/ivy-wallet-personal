@@ -6,6 +6,7 @@ import com.ivy.data.model.Transaction
 sealed class ReportScreenEvent {
     data class OnFilter(val filter: ReportFilter?) : ReportScreenEvent()
     data class OnExport(val context: Context) : ReportScreenEvent()
+    data class OnShareSummary(val context: Context) : ReportScreenEvent()
     data class OnPayOrGet(val transaction: Transaction) : ReportScreenEvent()
     data class SkipTransaction(val transaction: Transaction) : ReportScreenEvent()
     data class SkipTransactions(val transactions: List<Transaction>) : ReportScreenEvent()

@@ -73,11 +73,25 @@ Key contributions developed with AI assistance include:
 - **Category Search**: Instant search bar to quickly find categories.
 
 ### 📊 Comprehensive Money Management
+- **In-App Graphs & Financial Reports**:
+  - **Cash Flow Ratio Bar**: Real-time visual comparison of Total Income vs Total Expenses with animated proportional tracking.
+  - **Savings Efficiency**: Tracks savings percentage (`% retained from income`) and surplus/deficit metrics.
+  - **Category Spending Breakdown**: Displays top spending categories with transaction counts, spend totals, percentage share, and category-themed progress bars.
+  - **Shareable Financial Summary**: Generate formatted executive financial statements ready to share directly via the system share sheet.
+- **Recurring Bills Calendar View**:
+  - **Dual Mode Switcher**: Seamlessly toggle between standard List View and the new interactive Calendar View.
+  - **Monthly Calendar Grid**: Month-by-month navigation with visual badges and color dots indicating upcoming due bills.
+  - **Expected Monthly Summary**: Instant overview of expected monthly income, expected bills, and projected net balance.
+  - **Day-by-Day Inspection**: Tap any date on the calendar to see all subscriptions and planned payments due on that exact day.
 - **Accounts & Wallets**: Manage cash, bank accounts, credit cards, investments, and custom assets.
 - **Budgets & Spending Limits**: Set monthly category budgets with visual progress indicators.
-- **Planned & Recurring Bills**: Schedule recurring subscriptions and future payments.
 - **Loans & Debts**: Track money borrowed and lent with repayment tracking.
-- **Detailed Insights & Analytics**: Visual pie charts, category breakdowns, and monthly cash flow metrics.
+
+### 🛡️ AES-256 Encrypted Local Vault Backup
+- **Cryptographic Security**: Export `.ivybkp` vault files protected with **AES-256-GCM** authenticated encryption.
+- **PBKDF2 Key Derivation**: High-security password hashing (`PBKDF2WithHmacSHA256`, 65,536 iterations, 16-byte cryptographic salt).
+- **Tamper Detection**: GCM authentication tags guarantee data integrity and immediately detect invalid passwords or corrupted files.
+- **100% Offline Vault**: Safely store encrypted backups on external drives, cloud storage, or USB without exposing sensitive personal ledger data.
 
 ### 🚀 Performance & Optimization
 - **Ultra-Compact Size**: Reduced release APK size down to **~12.7 MB** (down from legacy 35MB+ builds) via R8 full-mode shrinking, ProGuard optimizations, and unused resource stripping.

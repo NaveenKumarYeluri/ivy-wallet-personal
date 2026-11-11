@@ -9,6 +9,16 @@ import kotlinx.collections.immutable.persistentListOf
 import java.util.*
 
 @Suppress("DataClassDefaultValues")
+data class CategorySpendingItem(
+    val categoryName: String,
+    val categoryColor: Int,
+    val categoryIcon: String?,
+    val totalAmount: Double,
+    val percentage: Float,
+    val transactionCount: Int
+)
+
+@Suppress("DataClassDefaultValues")
 data class ReportScreenState(
     val baseCurrency: String = "",
     val balance: Double = 0.0,
@@ -33,5 +43,7 @@ data class ReportScreenState(
     val showTransfersAsIncExpCheckbox: Boolean = false,
     val treatTransfersAsIncExp: Boolean = false,
     val allTags: ImmutableList<Tag> = persistentListOf(),
-    val showAccountColorsInTransactions: Boolean = false
+    val showAccountColorsInTransactions: Boolean = false,
+    val topSpendingCategories: ImmutableList<CategorySpendingItem> = persistentListOf(),
+    val savingsRate: Float = 0f
 )

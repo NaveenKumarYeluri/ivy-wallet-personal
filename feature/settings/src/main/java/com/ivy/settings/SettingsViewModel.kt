@@ -236,6 +236,7 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.SetName -> setName(event.newName)
             is SettingsEvent.ExportToCsv -> exportToCSV(event.rootScreen)
             is SettingsEvent.BackupData -> exportToZip(event.rootScreen)
+            is SettingsEvent.BackupEncryptedVault -> exportToEncryptedVault(event.rootScreen, event.password)
             SettingsEvent.SwitchTheme -> switchTheme()
             is SettingsEvent.SetTheme -> setTheme(event.theme)
             is SettingsEvent.SetAccent -> setAccent(event.accent)
@@ -319,6 +320,32 @@ class SettingsViewModel @Inject constructor(
             viewModelScope.launch(Dispatchers.IO) {
                 progressState.value = true
                 backupDataUseCase.exportToFile(zipFileUri = fileUri)
+                progressState.value = false
+
+                sharedPrefs.putBoolean(SharedPrefs.DATA_BACKUP_COMPLETED, true)
+                ivyContext.dataBackupCompleted = true
+
+                uiThread {
+                    rootScreen.shareZipFile(
+                        fileUri = fileUri
+                    )
+                }
+            }
+        }
+    }
+
+    private fun exportToEncryptedVault(rootScreen: RootScreen, password: String) {
+        ivyContext.createNewFile(
+            "IvyWalletVault_${
+                timeNowUTC().getISOFormattedDateTime()
+            }.ivybkp"
+        ) { fileUri ->
+            viewModelScope.launch(Dispatchers.IO) {
+                progressState.value = true
+                backupDataUseCase.exportEncryptedVault(
+                    vaultUri = fileUri,
+                    password = password.toCharArray()
+                )
                 progressState.value = false
 
                 sharedPrefs.putBoolean(SharedPrefs.DATA_BACKUP_COMPLETED, true)

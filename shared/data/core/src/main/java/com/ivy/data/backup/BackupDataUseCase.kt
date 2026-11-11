@@ -83,6 +83,41 @@ class BackupDataUseCase @Inject constructor(
         clearCacheDir()
     }
 
+    suspend fun exportEncryptedVault(
+        vaultUri: Uri,
+        password: CharArray
+    ) = withContext(dispatchersProvider.io) {
+        val jsonString = generateJsonBackup()
+        val plainBytes = jsonString.toByteArray(Charsets.UTF_8)
+        val encryptedBytes = CryptoVault.encrypt(plainBytes, password)
+
+        context.contentResolver.openOutputStream(vaultUri)?.use { os ->
+            os.write(encryptedBytes)
+            os.flush()
+        }
+    }
+
+    suspend fun importEncryptedVault(
+        vaultUri: Uri,
+        password: CharArray,
+        onProgress: suspend (progressPercent: Double) -> Unit
+    ): ImportResult = withContext(dispatchersProvider.io) {
+        return@withContext try {
+            val encryptedBytes = context.contentResolver.openInputStream(vaultUri)?.use { it.readBytes() }
+                ?: throw IllegalArgumentException("Cannot open vault file")
+
+            val decryptedBytes = CryptoVault.decrypt(encryptedBytes, password)
+            val jsonString = String(decryptedBytes, Charsets.UTF_8)
+
+            importJson(jsonString, onProgress, clearCacheDir = false)
+        } catch (e: Exception) {
+            Timber.e("Vault import error: $e")
+            throw e
+        } finally {
+            dataObserver.post(DataWriteEvent.AllDataChange)
+        }
+    }
+
     private fun createJsonDataFile(jsonString: String): File {
         val fileNamePrefix = "data"
         val fileNameSuffix = ".json"

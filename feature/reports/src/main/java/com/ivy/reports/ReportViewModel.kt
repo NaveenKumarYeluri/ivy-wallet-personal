@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toArgb
@@ -126,6 +127,8 @@ class ReportViewModel @Inject constructor(
     private var showTransfersAsIncExpCheckbox by mutableStateOf(false)
     private var treatTransfersAsIncExp by mutableStateOf(false)
     private var allTags by mutableStateOf<ImmutableList<Tag>>(persistentListOf())
+    private var topSpendingCategories by mutableStateOf<ImmutableList<CategorySpendingItem>>(persistentListOf())
+    private var savingsRate by mutableFloatStateOf(0f)
 
     private var tagSearchJob: Job? = null
     private val tagSearchDebounceTimeInMills: Long = 500
@@ -165,7 +168,9 @@ class ReportViewModel @Inject constructor(
             upcomingIncome = upcomingIncome,
             upcomingTransactions = upcomingTransactions,
             allTags = allTags,
-            showAccountColorsInTransactions = getShouldShowAccountSpecificColorInTransactions()
+            showAccountColorsInTransactions = getShouldShowAccountSpecificColorInTransactions(),
+            topSpendingCategories = topSpendingCategories,
+            savingsRate = savingsRate
         )
     }
 
@@ -174,6 +179,7 @@ class ReportViewModel @Inject constructor(
             when (event) {
                 is ReportScreenEvent.OnFilter -> setFilter(event.filter)
                 is ReportScreenEvent.OnExport -> export(event.context)
+                is ReportScreenEvent.OnShareSummary -> shareSummary(event.context)
                 is ReportScreenEvent.OnPayOrGet -> payOrGet(event.transaction)
                 is ReportScreenEvent.SkipTransaction -> skipTransaction(event.transaction)
                 is ReportScreenEvent.SkipTransactions -> skipTransactions(event.transactions)
@@ -238,6 +244,8 @@ class ReportViewModel @Inject constructor(
                     transactions = persistentListOf(),
                     balanceValue = 0.00
                 )
+                topSpendingCategories = persistentListOf()
+                savingsRate = 0f
                 return@scopedIOThread
             }
 
@@ -335,6 +343,36 @@ class ReportViewModel @Inject constructor(
                 }.toImmutableList(),
                 balanceValue = tempBalance
             )
+
+            val expenseTrns = transactionsList.filter {
+                with(transactionMapper) { it.getTransactionType() == TransactionType.EXPENSE }
+            }
+            val totalExpenseVal = if (tempExpenses > 0.0) tempExpenses else 1.0
+            val categoryMap = categories.associateBy { it.id.value }
+
+            topSpendingCategories = expenseTrns
+                .groupBy { it.category?.value }
+                .map { (catId, trns) ->
+                    val cat = catId?.let { categoryMap[it] } ?: unSpecifiedCategory
+                    val sum = trns.sumOf { (it as? Expense)?.value?.toDouble() ?: 0.0 }
+                    val pct = ((sum / totalExpenseVal) * 100).toFloat().coerceIn(0f, 100f)
+                    CategorySpendingItem(
+                        categoryName = cat.name.value,
+                        categoryColor = cat.color.value,
+                        categoryIcon = cat.icon?.value,
+                        totalAmount = sum,
+                        percentage = pct,
+                        transactionCount = trns.size
+                    )
+                }
+                .sortedByDescending { it.totalAmount }
+                .toImmutableList()
+
+            savingsRate = if (tempIncome > 0.0) {
+                (((tempIncome - tempExpenses) / tempIncome) * 100).toFloat().coerceIn(-100f, 100f)
+            } else {
+                0f
+            }
 
             loading = false
         }
@@ -645,5 +683,47 @@ class ReportViewModel @Inject constructor(
                 setFilter(filter)
             }
         }
+    }
+
+    private fun shareSummary(context: Context) {
+        val filter = filter ?: return
+        val periodText = filter.period?.name ?: "All Time"
+        val currency = baseCurrency
+        val net = income - expenses
+        val netSign = if (net >= 0) "+" else ""
+
+        val sb = StringBuilder()
+        sb.appendLine("═════════════════════════════════════")
+        sb.appendLine("   IVY WALLET - FINANCIAL REPORT")
+        sb.appendLine("═════════════════════════════════════")
+        sb.appendLine("Period: $periodText")
+        sb.appendLine("Currency: $currency")
+        sb.appendLine()
+        sb.appendLine("▶ FINANCIAL SUMMARY")
+        sb.appendLine("• Total Income:   $currency${String.format(java.util.Locale.US, "%.2f", income)}")
+        sb.appendLine("• Total Expenses: $currency${String.format(java.util.Locale.US, "%.2f", expenses)}")
+        sb.appendLine("• Net Cash Flow:  $netSign$currency${String.format(java.util.Locale.US, "%.2f", net)}")
+        sb.appendLine("• Savings Rate:   ${String.format(java.util.Locale.US, "%.1f%%", savingsRate)}")
+        sb.appendLine()
+
+        if (topSpendingCategories.isNotEmpty()) {
+            sb.appendLine("▶ TOP SPENDING CATEGORIES")
+            topSpendingCategories.forEachIndexed { index, cat ->
+                sb.appendLine(
+                    "${index + 1}. ${cat.categoryName}: $currency${String.format(java.util.Locale.US, "%.2f", cat.totalAmount)} (${String.format(java.util.Locale.US, "%.1f%%", cat.percentage)}) - ${cat.transactionCount} txn${if (cat.transactionCount != 1) "s" else ""}"
+                )
+            }
+            sb.appendLine()
+        }
+
+        sb.appendLine("═════════════════════════════════════")
+        sb.appendLine("Generated with Ivy Wallet Personal (100% Offline & Private)")
+
+        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(android.content.Intent.EXTRA_SUBJECT, "Financial Report - Ivy Wallet")
+            putExtra(android.content.Intent.EXTRA_TEXT, sb.toString())
+        }
+        context.startActivity(android.content.Intent.createChooser(intent, "Share Financial Report"))
     }
 }
