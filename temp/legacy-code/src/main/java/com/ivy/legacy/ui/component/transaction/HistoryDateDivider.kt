@@ -24,7 +24,6 @@ import com.ivy.legacy.utils.format
 import com.ivy.legacy.utils.formatLocal
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Gray
-import com.ivy.wallet.ui.theme.Green
 import java.time.LocalDate
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
@@ -83,11 +82,17 @@ fun HistoryDateDivider(
         Spacer(Modifier.weight(1f))
 
         val cashflow = income - expenses
+        val dayTotalColor = when {
+            cashflow > 0 -> UI.colors.primary
+            cashflow < 0 -> UI.colors.pureInverse
+            else -> UI.colors.gray
+        }
+        val prefix = if (cashflow > 0) "+" else ""
         Text(
-            text = "${cashflow.format(baseCurrency)} $baseCurrency",
+            text = "$prefix${cashflow.format(baseCurrency)} $baseCurrency",
             style = UI.typo.nB2.style(
                 fontWeight = FontWeight.Bold,
-                color = if (cashflow > 0) Green else Gray
+                color = dayTotalColor
             )
         )
 

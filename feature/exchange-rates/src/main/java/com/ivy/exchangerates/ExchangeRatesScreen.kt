@@ -26,7 +26,6 @@ import com.ivy.design.l1_buildingBlocks.ColumnRoot
 import com.ivy.design.l1_buildingBlocks.DividerW
 import com.ivy.design.l1_buildingBlocks.SpacerHor
 import com.ivy.design.l1_buildingBlocks.SpacerVer
-import com.ivy.exchangerates.component.CurrencyConverterCard
 import com.ivy.exchangerates.component.RateItem
 import com.ivy.exchangerates.data.RateUi
 import com.ivy.exchangerates.modal.AddRateModal
@@ -75,16 +74,6 @@ private fun BoxWithConstraintsScope.UI(
         SearchField(onSearch = { onEvent(RatesEvent.Search(it)) })
         SpacerVer(height = 4.dp)
         LazyColumn {
-            item(key = "currency_converter_card") {
-                val allRates = remember(state.manual, state.automatic) {
-                    state.manual + state.automatic
-                }
-                CurrencyConverterCard(
-                    baseCurrency = state.baseCurrency,
-                    rates = allRates
-                )
-                SpacerVer(height = 12.dp)
-            }
             ratesSection(text = "Manual")
             items(items = state.manual) { rate ->
                 SpacerVer(height = 4.dp)

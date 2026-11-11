@@ -20,7 +20,6 @@ import com.ivy.legacy.utils.navigationBarInset
 import com.ivy.legacy.utils.toDensityDp
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Gradient
-import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.White
 import com.ivy.wallet.ui.theme.components.ActionsRow
@@ -52,6 +51,7 @@ fun BoxWithConstraintsScope.PieChartStatisticBottomBar(
         Spacer(Modifier.weight(1f))
 
         val isIncome = type == TransactionType.INCOME
+        val buttonTextColor = if (isIncome) White else UI.colors.pure
         IvyButton(
             iconStart = R.drawable.ic_plus,
             text = if (isIncome) {
@@ -61,12 +61,12 @@ fun BoxWithConstraintsScope.PieChartStatisticBottomBar(
             } else {
                 stringResource(id = R.string.add_expense)
             },
-            backgroundGradient = if (isIncome) GradientGreen else GradientPrimary,
+            backgroundGradient = if (isIncome) GradientPrimary else Gradient(UI.colors.pureInverse, UI.colors.gray),
             textStyle = UI.typo.b2.style(
-                color = White,
+                color = buttonTextColor,
                 fontWeight = FontWeight.ExtraBold
             ),
-            iconTint = White
+            iconTint = buttonTextColor
         ) {
             onAdd(type)
         }

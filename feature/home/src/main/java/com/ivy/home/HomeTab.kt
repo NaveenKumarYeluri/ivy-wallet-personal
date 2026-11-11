@@ -66,6 +66,7 @@ import com.ivy.legacy.utils.rememberSwipeListenerState
 import com.ivy.legacy.utils.verticalSwipeListener
 import androidx.compose.ui.platform.LocalContext
 import com.ivy.base.legacy.SharedPrefs
+import com.ivy.home.quicktemplate.CreateOrEditTemplateModal
 import com.ivy.home.quicktemplate.CreateTemplateModal
 import com.ivy.home.quicktemplate.ManageTemplatesModal
 import com.ivy.home.quicktemplate.QuickTemplate
@@ -132,6 +133,7 @@ fun BoxWithConstraintsScope.HomeUi(
     var templates by remember { mutableStateOf(templateManager.getTemplates()) }
     var createTemplateModalVisible by remember { mutableStateOf(false) }
     var manageTemplatesModalVisible by remember { mutableStateOf(false) }
+    var editingTemplate by remember { mutableStateOf<QuickTemplate?>(null) }
 
     Column(
         modifier = modifier
@@ -248,6 +250,7 @@ fun BoxWithConstraintsScope.HomeUi(
                     EditTransactionScreen(
                         initialTransactionId = null,
                         type = template.type,
+                        accountId = template.accountId,
                         categoryId = template.categoryId,
                         initialAmount = template.amount,
                         initialTitle = template.name
@@ -255,6 +258,7 @@ fun BoxWithConstraintsScope.HomeUi(
                 )
             },
             onAddTemplateClick = {
+                editingTemplate = null
                 createTemplateModalVisible = true
             },
             onManageTemplatesClick = {
@@ -331,12 +335,19 @@ fun BoxWithConstraintsScope.HomeUi(
         skipAllModalVisible = false
     }
 
-    CreateTemplateModal(
+    CreateOrEditTemplateModal(
         visible = createTemplateModalVisible,
-        dismiss = { createTemplateModalVisible = false },
-        onSaveTemplate = { newTemplate ->
-            templateManager.addTemplate(newTemplate)
+        editingTemplate = editingTemplate,
+        categories = uiState.baseData.categories,
+        accounts = uiState.baseData.accounts,
+        dismiss = {
+            createTemplateModalVisible = false
+            editingTemplate = null
+        },
+        onSaveTemplate = { savedTemplate ->
+            templateManager.updateTemplate(savedTemplate)
             templates = templateManager.getTemplates()
+            editingTemplate = null
         }
     )
 
@@ -345,9 +356,19 @@ fun BoxWithConstraintsScope.HomeUi(
         templates = templates,
         currency = baseCurrency,
         dismiss = { manageTemplatesModalVisible = false },
+        onEditTemplate = { template ->
+            manageTemplatesModalVisible = false
+            editingTemplate = template
+            createTemplateModalVisible = true
+        },
         onDeleteTemplate = { id ->
             templateManager.deleteTemplate(id)
             templates = templateManager.getTemplates()
+        },
+        onAddNewTemplate = {
+            manageTemplatesModalVisible = false
+            editingTemplate = null
+            createTemplateModalVisible = true
         },
         onResetDefaults = {
             templateManager.resetToDefaults()

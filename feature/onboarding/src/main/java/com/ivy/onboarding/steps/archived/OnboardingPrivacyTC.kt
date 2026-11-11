@@ -48,7 +48,7 @@ import com.ivy.legacy.utils.drawColoredShadow
 import com.ivy.legacy.utils.toDensityDp
 import com.ivy.legacy.utils.toDensityPx
 import com.ivy.ui.R
-import com.ivy.wallet.ui.theme.GradientGreen
+import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.White
@@ -260,8 +260,8 @@ private fun SwipeToAgree(
             modifier = Modifier
                 .padding(start = 8.dp)
                 .offset(x = offsetX.toDensityDp())
-                .drawColoredShadow(color = Green)
-                .background(GradientGreen.asHorizontalBrush(), UI.shapes.r4)
+                .drawColoredShadow(color = UI.colors.primary)
+                .background(GradientPrimary.asHorizontalBrush(), UI.shapes.r4)
                 .pointerInput(onAgree) {
                     detectHorizontalDragGestures(
                         onDragCancel = {

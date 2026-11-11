@@ -54,7 +54,6 @@ import com.ivy.legacy.utils.onScreenStart
 import com.ivy.legacy.utils.toLowerCaseLocal
 import com.ivy.ui.R
 import com.ivy.wallet.domain.data.IvyCurrency
-import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.GradientIvy
 import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Ivy

@@ -66,7 +66,6 @@ import com.ivy.ui.time.TimeFormatter
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.Blue
 import com.ivy.wallet.ui.theme.Gradient
-import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.GradientOrangeRevert
 import com.ivy.wallet.ui.theme.GradientRed
@@ -250,7 +249,7 @@ fun TransactionCard(
                         .padding(end = 24.dp),
                     text = if (isExpense) stringResource(R.string.pay) else stringResource(R.string.get),
                     wrapContentMode = false,
-                    backgroundGradient = if (isExpense) gradientExpenses() else GradientGreen,
+                    backgroundGradient = if (isExpense) gradientExpenses() else GradientPrimary,
                     textStyle = UI.typo.b2.style(
                         color = if (isExpense) UI.colors.pure else White,
                         fontWeight = FontWeight.Bold
@@ -574,9 +573,9 @@ fun TypeAmountCurrency(
             TransactionType.INCOME -> {
                 AmountTypeStyle(
                     icon = R.drawable.ic_income,
-                    gradient = GradientGreen,
+                    gradient = GradientPrimary,
                     iconTint = White,
-                    textColor = Green
+                    textColor = UI.colors.primary
                 )
             }
 

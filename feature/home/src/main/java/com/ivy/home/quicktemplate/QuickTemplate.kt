@@ -11,6 +11,8 @@ data class QuickTemplate(
     val type: TransactionType = TransactionType.EXPENSE,
     val categoryId: UUID? = null,
     val categoryName: String? = null,
+    val accountId: UUID? = null,
+    val accountName: String? = null,
     val emoji: String = "⚡"
 ) {
     fun toJson(): JSONObject {
@@ -21,6 +23,8 @@ data class QuickTemplate(
             put("type", type.name)
             if (categoryId != null) put("categoryId", categoryId.toString())
             if (categoryName != null) put("categoryName", categoryName)
+            if (accountId != null) put("accountId", accountId.toString())
+            if (accountName != null) put("accountName", accountName)
             put("emoji", emoji)
         }
     }
@@ -40,6 +44,10 @@ data class QuickTemplate(
                     try { UUID.fromString(it) } catch (e: Exception) { null }
                 },
                 categoryName = json.optString("categoryName").takeIf { it.isNotBlank() },
+                accountId = json.optString("accountId").takeIf { it.isNotBlank() }?.let {
+                    try { UUID.fromString(it) } catch (e: Exception) { null }
+                },
+                accountName = json.optString("accountName").takeIf { it.isNotBlank() },
                 emoji = json.optString("emoji", "⚡")
             )
         }

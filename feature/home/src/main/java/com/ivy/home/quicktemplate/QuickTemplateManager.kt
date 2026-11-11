@@ -45,6 +45,17 @@ class QuickTemplateManager @Inject constructor(
         saveTemplates(current)
     }
 
+    fun updateTemplate(template: QuickTemplate) {
+        val current = getTemplates().toMutableList()
+        val index = current.indexOfFirst { it.id == template.id }
+        if (index != -1) {
+            current[index] = template
+            saveTemplates(current)
+        } else {
+            addTemplate(template)
+        }
+    }
+
     fun deleteTemplate(id: String) {
         val current = getTemplates().filterNot { it.id == id }
         saveTemplates(current)

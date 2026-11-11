@@ -61,7 +61,6 @@ import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
 import com.ivy.ui.rememberScrollPositionListState
-import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.GradientPrimary
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
@@ -316,10 +315,10 @@ private fun Header(
             if (percentExpanded > 0f) {
                 Spacer(Modifier.width(12.dp))
 
-                val backgroundGradient = if (transactionType == TransactionType.EXPENSE) {
+                val backgroundGradient = if (transactionType == TransactionType.INCOME) {
                     GradientPrimary
                 } else {
-                    GradientGreen
+                    gradientExpenses()
                 }
                 CircleButtonFilledGradient(
                     modifier = Modifier
