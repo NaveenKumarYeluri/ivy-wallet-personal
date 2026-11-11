@@ -75,6 +75,7 @@ class AndroidDateTimePicker @Inject constructor(
                 colors = DatePickerDefaults.colors(
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
                     selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
                     todayContentColor = MaterialTheme.colorScheme.onBackground,
                     todayDateBorderColor = MaterialTheme.colorScheme.onBackground,
                     dayContentColor = MaterialTheme.colorScheme.onBackground
@@ -117,7 +118,16 @@ class AndroidDateTimePicker @Inject constructor(
                     state = pickerState,
                     colors = TimePickerDefaults.colors(
                         selectorColor = MaterialTheme.colorScheme.primary,
-                        timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary
+                        clockDialSelectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        clockDialUnselectedContentColor = MaterialTheme.colorScheme.onSurface,
+                        timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary,
+                        timeSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface,
+                        periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary,
+                        periodSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        periodSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        periodSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
