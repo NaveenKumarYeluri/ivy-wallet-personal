@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -240,6 +239,8 @@ fun BoxWithConstraintsScope.CreateOrEditTemplateModal(
     dismiss: () -> Unit,
     onSaveTemplate: (QuickTemplate) -> Unit
 ) {
+    val modalId = remember { UUID.randomUUID() }
+
     var name by remember(visible, editingTemplate) {
         mutableStateOf(TextFieldValue(editingTemplate?.name ?: ""))
     }
@@ -274,7 +275,7 @@ fun BoxWithConstraintsScope.CreateOrEditTemplateModal(
     val isEditing = editingTemplate != null
 
     IvyModal(
-        id = UUID.randomUUID(),
+        id = modalId,
         visible = visible,
         dismiss = dismiss,
         PrimaryAction = {
@@ -302,152 +303,147 @@ fun BoxWithConstraintsScope.CreateOrEditTemplateModal(
             }
         }
     ) {
-        Column(
+        Spacer(Modifier.height(32.dp))
+
+        ModalTitle(text = if (isEditing) "Edit Template" else "New Quick Template")
+
+        Spacer(Modifier.height(20.dp))
+
+        // Name input
+        Text(
+            modifier = Modifier.padding(horizontal = 32.dp),
+            text = "Template Name",
+            style = UI.typo.b2.style(
+                color = UI.colors.pureInverse,
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        ModalNameInput(
+            hint = "e.g., Morning Coffee",
+            autoFocusKeyboard = false,
+            textFieldValue = name,
+            setTextFieldValue = { name = it }
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        // Amount input (optional)
+        Text(
+            modifier = Modifier.padding(horizontal = 32.dp),
+            text = "Amount (optional)",
+            style = UI.typo.b2.style(
+                color = UI.colors.pureInverse,
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        ModalNameInput(
+            hint = "0.00",
+            autoFocusKeyboard = false,
+            textFieldValue = amountText,
+            setTextFieldValue = { amountText = it }
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        // Type toggle: Expense / Income
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Spacer(Modifier.height(32.dp))
-
-            ModalTitle(text = if (isEditing) "Edit Template" else "New Quick Template")
-
-            Spacer(Modifier.height(20.dp))
-
-            // Name input
-            Text(
-                modifier = Modifier.padding(horizontal = 32.dp),
-                text = "Template Name",
-                style = UI.typo.b2.style(
-                    color = UI.colors.pureInverse,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            ModalNameInput(
-                hint = "e.g., Morning Coffee",
-                autoFocusKeyboard = false,
-                textFieldValue = name,
-                setTextFieldValue = { name = it }
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // Amount input (optional)
-            Text(
-                modifier = Modifier.padding(horizontal = 32.dp),
-                text = "Amount (optional)",
-                style = UI.typo.b2.style(
-                    color = UI.colors.pureInverse,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            ModalNameInput(
-                hint = "0.00",
-                autoFocusKeyboard = false,
-                textFieldValue = amountText,
-                setTextFieldValue = { amountText = it }
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // Type toggle: Expense / Income
-            Row(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .weight(1f)
+                    .clip(UI.shapes.rFull)
+                    .background(if (selectedType == TransactionType.EXPENSE) UI.colors.primary else UI.colors.medium)
+                    .clickable { selectedType = TransactionType.EXPENSE }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(UI.shapes.rFull)
-                        .background(if (selectedType == TransactionType.EXPENSE) UI.colors.primary else UI.colors.medium)
-                        .clickable { selectedType = TransactionType.EXPENSE }
-                        .padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Expense",
-                        style = UI.typo.b2.style(
-                            color = if (selectedType == TransactionType.EXPENSE) White else UI.colors.pureInverse,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(UI.shapes.rFull)
-                        .background(if (selectedType == TransactionType.INCOME) UI.colors.primary else UI.colors.medium)
-                        .clickable { selectedType = TransactionType.INCOME }
-                        .padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Income",
-                        style = UI.typo.b2.style(
-                            color = if (selectedType == TransactionType.INCOME) White else UI.colors.pureInverse,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Category selector (optional)
-            if (categories.isNotEmpty()) {
                 Text(
-                    modifier = Modifier.padding(horizontal = 32.dp),
-                    text = "Category (optional)",
+                    text = "Expense",
                     style = UI.typo.b2.style(
-                        color = UI.colors.pureInverse,
+                        color = if (selectedType == TransactionType.EXPENSE) White else UI.colors.pureInverse,
                         fontWeight = FontWeight.Bold
                     )
                 )
+            }
 
-                Spacer(Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(UI.shapes.rFull)
+                    .background(if (selectedType == TransactionType.INCOME) UI.colors.primary else UI.colors.medium)
+                    .clickable { selectedType = TransactionType.INCOME }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Income",
+                    style = UI.typo.b2.style(
+                        color = if (selectedType == TransactionType.INCOME) White else UI.colors.pureInverse,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        }
 
-                Row(
+        Spacer(Modifier.height(16.dp))
+
+        // Category selector (optional)
+        if (categories.isNotEmpty()) {
+            Text(
+                modifier = Modifier.padding(horizontal = 32.dp),
+                text = "Category (optional)",
+                style = UI.typo.b2.style(
+                    color = UI.colors.pureInverse,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 32.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val isNoneSelected = selectedCategoryId == null
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 32.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .clip(UI.shapes.rFull)
+                        .background(if (isNoneSelected) UI.colors.primary else UI.colors.medium)
+                        .clickable {
+                            selectedCategoryId = null
+                            selectedCategoryName = null
+                        }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    val isNoneSelected = selectedCategoryId == null
+                    Text(
+                        text = "None",
+                        style = UI.typo.c.style(
+                            color = if (isNoneSelected) White else UI.colors.pureInverse,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+
+                categories.forEach { cat ->
+                    val isSelected = selectedCategoryId == cat.id.value
                     Box(
                         modifier = Modifier
                             .clip(UI.shapes.rFull)
-                            .background(if (isNoneSelected) UI.colors.primary else UI.colors.medium)
-                            .clickable {
-                                selectedCategoryId = null
-                                selectedCategoryName = null
-                            }
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "None",
-                            style = UI.typo.c.style(
-                                color = if (isNoneSelected) White else UI.colors.pureInverse,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-
-                    categories.forEach { cat ->
-                        val isSelected = selectedCategoryId == cat.id.value
-                        Box(
-                            modifier = Modifier
-                                .clip(UI.shapes.rFull)
-                                .background(if (isSelected) UI.colors.primary else UI.colors.medium)
+                            .background(if (isSelected) UI.colors.primary else UI.colors.medium)
                             .clickable {
                                 selectedCategoryId = cat.id.value
                                 selectedCategoryName = cat.name.value
@@ -577,7 +573,6 @@ fun BoxWithConstraintsScope.CreateOrEditTemplateModal(
         Spacer(Modifier.height(32.dp))
     }
 }
-}
 
 // Backward compatibility helper
 @Composable
@@ -607,8 +602,10 @@ fun BoxWithConstraintsScope.ManageTemplatesModal(
     onAddNewTemplate: () -> Unit = {},
     onResetDefaults: () -> Unit
 ) {
+    val modalId = remember { UUID.randomUUID() }
+
     IvyModal(
-        id = UUID.randomUUID(),
+        id = modalId,
         visible = visible,
         dismiss = dismiss,
         PrimaryAction = {
@@ -620,135 +617,129 @@ fun BoxWithConstraintsScope.ManageTemplatesModal(
             }
         }
     ) {
-        Column(
+        Spacer(Modifier.height(32.dp))
+
+        ModalTitle(text = "Manage Templates")
+
+        Spacer(Modifier.height(16.dp))
+
+        // Add Custom Template Button inside Manage modal
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp, vertical = 4.dp)
+                .clip(UI.shapes.r3)
+                .background(UI.colors.primary.copy(alpha = 0.12f))
+                .clickable { onAddNewTemplate() }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(Modifier.height(32.dp))
-
-            ModalTitle(text = "Manage Templates")
-
-            Spacer(Modifier.height(16.dp))
-
-            // Add Custom Template Button inside Manage modal
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 4.dp)
-                    .clip(UI.shapes.r3)
-                    .background(UI.colors.primary.copy(alpha = 0.12f))
-                    .clickable { onAddNewTemplate() }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IvyIcon(
-                    icon = R.drawable.ic_plus,
-                    tint = UI.colors.primary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = "Add Custom Template",
-                    style = UI.typo.b2.style(
-                        color = UI.colors.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            templates.forEach { template ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 32.dp, vertical = 6.dp)
-                        .clip(UI.shapes.r3)
-                        .background(UI.colors.medium)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = template.emoji,
-                            fontSize = 20.sp
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                text = template.name,
-                                style = UI.typo.b2.style(
-                                    color = UI.colors.pureInverse,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                            val details = buildList {
-                                add(if (template.type == TransactionType.INCOME) "Income" else "Expense")
-                                if (template.amount != null && template.amount > 0) {
-                                    add("${template.amount.toIntOrDouble()} $currency")
-                                }
-                                if (!template.categoryName.isNullOrBlank()) {
-                                    add(template.categoryName)
-                                }
-                                if (!template.accountName.isNullOrBlank()) {
-                                    add(template.accountName)
-                                }
-                            }.joinToString(" • ")
-                            Text(
-                                text = details,
-                                style = UI.typo.c.style(
-                                    color = UI.colors.primary,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            )
-                        }
-                    }
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IvyIcon(
-                            modifier = Modifier
-                                .clip(UI.shapes.rFull)
-                                .clickable { onEditTemplate(template) }
-                                .padding(8.dp),
-                            icon = R.drawable.ic_edit,
-                            tint = UI.colors.primary
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        IvyIcon(
-                            modifier = Modifier
-                                .clip(UI.shapes.rFull)
-                                .clickable { onDeleteTemplate(template.id) }
-                                .padding(8.dp),
-                            icon = R.drawable.ic_delete,
-                            tint = Red
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Reset to Defaults Button
+            IvyIcon(
+                icon = R.drawable.ic_plus,
+                tint = UI.colors.primary,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(8.dp))
             Text(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .clip(UI.shapes.rFull)
-                    .clickable { onResetDefaults() }
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                text = "Reset to Defaults",
-                style = UI.typo.c.style(
+                text = "Add Custom Template",
+                style = UI.typo.b2.style(
                     color = UI.colors.primary,
                     fontWeight = FontWeight.Bold
                 )
             )
-
-            Spacer(Modifier.height(24.dp))
         }
+
+        Spacer(Modifier.height(8.dp))
+
+        templates.forEach { template ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 6.dp)
+                    .clip(UI.shapes.r3)
+                    .background(UI.colors.medium)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = template.emoji,
+                        fontSize = 20.sp
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = template.name,
+                            style = UI.typo.b2.style(
+                                color = UI.colors.pureInverse,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        val details = buildList {
+                            add(if (template.type == TransactionType.INCOME) "Income" else "Expense")
+                            if (template.amount != null && template.amount > 0) {
+                                add("${template.amount.toIntOrDouble()} $currency")
+                            }
+                            if (!template.categoryName.isNullOrBlank()) {
+                                add(template.categoryName)
+                            }
+                            if (!template.accountName.isNullOrBlank()) {
+                                add(template.accountName)
+                            }
+                        }.joinToString(" • ")
+                        Text(
+                            text = details,
+                            style = UI.typo.c.style(
+                                color = UI.colors.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IvyIcon(
+                        modifier = Modifier
+                            .clip(UI.shapes.rFull)
+                            .clickable { onEditTemplate(template) }
+                            .padding(8.dp),
+                        icon = R.drawable.ic_edit,
+                        tint = UI.colors.primary
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    IvyIcon(
+                        modifier = Modifier
+                            .clip(UI.shapes.rFull)
+                            .clickable { onDeleteTemplate(template.id) }
+                            .padding(8.dp),
+                        icon = R.drawable.ic_delete,
+                        tint = Red
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Reset to Defaults Button
+        Text(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .clip(UI.shapes.rFull)
+                .clickable { onResetDefaults() }
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            text = "Reset to Defaults",
+            style = UI.typo.c.style(
+                color = UI.colors.primary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+
+        Spacer(Modifier.height(24.dp))
     }
 }
