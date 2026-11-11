@@ -103,6 +103,7 @@ fun BoxWithConstraintsScope.ReportScreenContent(
     val ivyCtx = ivyWalletCtx()
 
     val listState = rememberScrollPositionListState(key = if (isTab) "reports_tab" else "reports_screen")
+    val swipeListenerState = rememberSwipeListenerState()
 
     if (state.loading) {
         Box(
@@ -132,7 +133,7 @@ fun BoxWithConstraintsScope.ReportScreenContent(
             .thenIf(isTab) {
                 horizontalSwipeListener(
                     sensitivity = 200,
-                    state = rememberSwipeListenerState(),
+                    state = swipeListenerState,
                     onSwipeLeft = {
                         // Rightmost tab
                     },
@@ -320,15 +321,11 @@ fun BoxWithConstraintsScope.ReportScreenContent(
         // 10. If custom filter active, show transaction history
         if (state.filter != null) {
             transactions(
-                currency = state.baseCurrency,
-                onTransactionClick = {
-                    nav.navigateTo(
-                        com.ivy.navigation.EditTransactionScreen(
-                            initialTransactionId = it.id,
-                            type = it.type
-                        )
-                    )
-                },
+                baseData = AppBaseData(
+                    baseCurrency = state.baseCurrency,
+                    categories = state.categories,
+                    accounts = state.accounts
+                ),
                 upcoming = LegacyDueSection(
                     trns = state.upcomingTransactions,
                     stats = IncomeExpensePair(

@@ -489,7 +489,7 @@ class ReportViewModel @Inject constructor(
             projectedPeriodExpense = exp + (burn * daysRemaining)
             projectedPeriodSavings = inc - projectedPeriodExpense
 
-            val totalAccBalance = allAccounts.sumOf { it.balance }
+            val totalAccBalance = if (balance > 0) balance else inc
             val monthlyBurn = burn * 30.4
             financialRunwayMonths = when {
                 monthlyBurn > 0.01 && totalAccBalance > 0 -> totalAccBalance / monthlyBurn
