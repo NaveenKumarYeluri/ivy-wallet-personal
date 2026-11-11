@@ -16,6 +16,12 @@ class AttributionsProvider @Inject constructor() {
             link = "https://github.com/Ivy-Apps/ivy-wallet/graphs/contributors"
         ),
 
+        AttributionItem.Divider(sectionName = "AI Development & Assistance"),
+        AttributionItem.Attribution(
+            name = "Google Antigravity (Advanced Agentic AI)",
+            link = "https://deepmind.google"
+        ),
+
         AttributionItem.Divider(sectionName = "Icons"),
         AttributionItem.Attribution(name = "iconsax", link = "https://iconsax.io"),
         AttributionItem.Attribution(

@@ -21,6 +21,16 @@ This project is a customized personal fork based upon the original open-source [
 
 We are deeply grateful to Iliyan Germanov and all the open-source contributors who designed and developed the original Ivy Wallet application. In accordance with the GNU General Public License v3.0, all enhancements and modifications in this repository remain fully open source under the GPLv3 license.
 
+### 🤖 AI Pair Programming Attribution
+
+Ivy Wallet Personal has been modernized, enhanced, and engineered with the continuous pair-programming assistance of **Google Antigravity** (Google DeepMind Advanced Agentic AI).
+
+Key contributions developed with AI assistance include:
+- **Homescreen Quick Log System**: Designing and implementing 1-tap quick logging with full custom template creation, editing, and persistent storage.
+- **Material 3 Dynamic Theming**: Overhauling legacy hardcoded green/red colors into dynamic, theme-adaptive semantic colors for income, expense, date dividers, and statistics charts.
+- **Privacy & Settings Fixes**: Implementing account total balance masking with tap-to-peek privacy across account cards and Home screen, along with case-insensitive alphabetical category sorting.
+- **Architecture & Optimization**: Streamlining offline fixed-currency workflows, removing obsolete network polling, reducing APK size to ~7.1 MB with R8 full-mode optimization, and modernizing Gradle CI/CD pipelines.
+
 ---
 
 ## ✨ Features & Enhancements
