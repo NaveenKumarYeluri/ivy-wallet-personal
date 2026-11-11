@@ -49,6 +49,7 @@ import com.ivy.legacy.utils.uiThread
 import com.ivy.ui.ComposeViewModel
 import com.ivy.ui.R
 import com.ivy.wallet.domain.action.account.AccountsAct
+import com.ivy.wallet.domain.action.budget.BudgetsAct
 import com.ivy.wallet.domain.action.exchange.ExchangeAct
 import com.ivy.wallet.domain.action.settings.BaseCurrencyAct
 import com.ivy.wallet.domain.action.transaction.CalcTrnsIncomeExpenseAct
@@ -98,7 +99,8 @@ class ReportViewModel @Inject constructor(
     private val exportCsvUseCase: ExportCsvUseCase,
     private val timeProvider: TimeProvider,
     private val timeConverter: TimeConverter,
-    private val features: Features
+    private val features: Features,
+    private val budgetsAct: BudgetsAct
 ) : ComposeViewModel<ReportScreenState, ReportScreenEvent>() {
     private val unSpecifiedCategory =
         Category(
@@ -160,6 +162,10 @@ class ReportViewModel @Inject constructor(
     private var netChange by mutableDoubleStateOf(0.0)
     private var dailyHeatmapDays by mutableStateOf<ImmutableList<DailySpendingHeatmapDay>>(persistentListOf())
     private var selectedHeatmapDay by mutableStateOf<DailySpendingHeatmapDay?>(null)
+    private var categoryBudgets by mutableStateOf<ImmutableList<ReportBudgetItem>>(persistentListOf())
+    private var totalBudgetLimit by mutableDoubleStateOf(0.0)
+    private var totalBudgetSpent by mutableDoubleStateOf(0.0)
+    private var totalBudgetRemaining by mutableDoubleStateOf(0.0)
 
     private var tagSearchJob: Job? = null
     private val tagSearchDebounceTimeInMills: Long = 500
@@ -225,7 +231,11 @@ class ReportViewModel @Inject constructor(
             lowestBalance = lowestBalance,
             netChange = netChange,
             dailyHeatmapDays = dailyHeatmapDays,
-            selectedHeatmapDay = selectedHeatmapDay
+            selectedHeatmapDay = selectedHeatmapDay,
+            categoryBudgets = categoryBudgets,
+            totalBudgetLimit = totalBudgetLimit,
+            totalBudgetSpent = totalBudgetSpent,
+            totalBudgetRemaining = totalBudgetRemaining
         )
     }
 
@@ -500,6 +510,52 @@ class ReportViewModel @Inject constructor(
             } else {
                 dailyHeatmapDays = persistentListOf()
                 selectedHeatmapDay = null
+            }
+
+            // Category Budgets Calculation
+            val allBudgets = budgetsAct(Unit)
+            if (allBudgets.isNotEmpty()) {
+                val budgetItems = allBudgets.map { b ->
+                    val catIds = b.parseCategoryIds()
+                    val accIds = b.parseAccountIds()
+
+                    val matchedExpenses = periodExpenses.filter { trn ->
+                        val trnCatId = trn.category?.value
+                        val trnAccId = trn.account.value
+                        val matchesCat = catIds.isEmpty() || (trnCatId != null && catIds.contains(trnCatId))
+                        val matchesAcc = accIds.isEmpty() || accIds.contains(trnAccId)
+                        matchesCat && matchesAcc
+                    }
+
+                    val spent = matchedExpenses.sumOf { it.value.amount.value }
+                    val limit = b.amount.coerceAtLeast(0.01)
+                    val pct = ((spent / limit) * 100).toFloat().coerceIn(0f, 999f)
+                    val remaining = b.amount - spent
+                    val primaryCat = catIds.firstOrNull()?.let { categoryMap[it] }
+
+                    ReportBudgetItem(
+                        id = b.id,
+                        name = b.name,
+                        limitAmount = b.amount,
+                        spentAmount = spent,
+                        percentage = pct,
+                        remainingAmount = remaining,
+                        isExceeded = spent > b.amount,
+                        primaryCategoryName = primaryCat?.name?.value,
+                        primaryCategoryColor = primaryCat?.color?.value,
+                        primaryCategoryIcon = primaryCat?.icon?.id
+                    )
+                }
+
+                categoryBudgets = budgetItems.toImmutableList()
+                totalBudgetLimit = budgetItems.sumOf { it.limitAmount }
+                totalBudgetSpent = budgetItems.sumOf { it.spentAmount }
+                totalBudgetRemaining = totalBudgetLimit - totalBudgetSpent
+            } else {
+                categoryBudgets = persistentListOf()
+                totalBudgetLimit = 0.0
+                totalBudgetSpent = 0.0
+                totalBudgetRemaining = 0.0
             }
 
             // Future Prediction & Runway

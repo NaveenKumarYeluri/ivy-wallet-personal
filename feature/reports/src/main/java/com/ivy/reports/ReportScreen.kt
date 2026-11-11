@@ -50,6 +50,7 @@ import com.ivy.legacy.utils.clickableNoIndication
 import com.ivy.legacy.utils.horizontalSwipeListener
 import com.ivy.legacy.utils.rememberInteractionSource
 import com.ivy.legacy.utils.rememberSwipeListenerState
+import com.ivy.navigation.BudgetScreen
 import com.ivy.navigation.PieChartStatisticScreen
 import com.ivy.navigation.ReportScreen
 import com.ivy.navigation.navigation
@@ -281,7 +282,22 @@ fun BoxWithConstraintsScope.ReportScreenContent(
             }
         }
 
-        // 6. Pie Chart Distribution
+        // 7. Category Budgets & Spending Limits
+        item {
+            CategoryBudgetsSection(
+                budgets = state.categoryBudgets,
+                totalLimit = state.totalBudgetLimit,
+                totalSpent = state.totalBudgetSpent,
+                totalRemaining = state.totalBudgetRemaining,
+                currency = state.baseCurrency,
+                onManageBudgets = {
+                    nav.navigateTo(BudgetScreen)
+                }
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // 8. Pie Chart Distribution
         item {
             val totalForPie = if (state.pieChartMode == TransactionType.EXPENSE) state.expenses else state.income
             CategoryPieChartSection(

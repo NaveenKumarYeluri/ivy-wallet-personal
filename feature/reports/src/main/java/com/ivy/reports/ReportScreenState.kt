@@ -27,6 +27,20 @@ data class BalanceTrendPoint(
 )
 
 @Suppress("DataClassDefaultValues")
+data class ReportBudgetItem(
+    val id: UUID,
+    val name: String,
+    val limitAmount: Double,
+    val spentAmount: Double,
+    val percentage: Float,
+    val remainingAmount: Double,
+    val isExceeded: Boolean,
+    val primaryCategoryName: String?,
+    val primaryCategoryColor: Int?,
+    val primaryCategoryIcon: String?
+)
+
+@Suppress("DataClassDefaultValues")
 data class CategorySpendingItem(
     val categoryName: String,
     val categoryColor: Int,
@@ -99,5 +113,10 @@ data class ReportScreenState(
     val netChange: Double = 0.0,
     // Daily spending heatmap
     val dailyHeatmapDays: ImmutableList<DailySpendingHeatmapDay> = persistentListOf(),
-    val selectedHeatmapDay: DailySpendingHeatmapDay? = null
+    val selectedHeatmapDay: DailySpendingHeatmapDay? = null,
+    // Category budgets
+    val categoryBudgets: ImmutableList<ReportBudgetItem> = persistentListOf(),
+    val totalBudgetLimit: Double = 0.0,
+    val totalBudgetSpent: Double = 0.0,
+    val totalBudgetRemaining: Double = 0.0
 )

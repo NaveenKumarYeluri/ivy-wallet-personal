@@ -44,6 +44,7 @@ import com.ivy.design.l0_system.style
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
+import com.ivy.wallet.ui.theme.Orange
 import com.ivy.wallet.ui.theme.Red
 import com.ivy.wallet.ui.theme.components.ItemIconM
 import com.ivy.wallet.ui.theme.components.IvyIcon
@@ -1378,5 +1379,321 @@ private fun HeatmapLegendItem(
                 fontWeight = FontWeight.Medium
             )
         )
+    }
+}
+
+@Composable
+fun CategoryBudgetsSection(
+    budgets: ImmutableList<ReportBudgetItem>,
+    totalLimit: Double,
+    totalSpent: Double,
+    totalRemaining: Double,
+    currency: String,
+    onManageBudgets: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(UI.colors.medium)
+            .padding(16.dp)
+    ) {
+        // Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Category Budgets & Limits",
+                style = UI.typo.b1.style(
+                    fontWeight = FontWeight.Bold,
+                    color = UI.colors.pureInverse
+                )
+            )
+
+            if (budgets.isNotEmpty()) {
+                val badgeBg = if (totalRemaining >= 0) Green.copy(alpha = 0.18f) else Red.copy(alpha = 0.18f)
+                val badgeColor = if (totalRemaining >= 0) Green else Red
+                val badgeText = if (totalRemaining >= 0) {
+                    "$currency${String.format(Locale.US, "%.0f", totalRemaining)} left"
+                } else {
+                    "- $currency${String.format(Locale.US, "%.0f", -totalRemaining)} over"
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(badgeBg)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = badgeText,
+                        style = UI.typo.c.style(
+                            fontWeight = FontWeight.Bold,
+                            color = badgeColor
+                        )
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = "Track your monthly spending limits and allowances",
+            style = UI.typo.c.style(
+                color = UI.colors.gray
+            )
+        )
+
+        Spacer(Modifier.height(14.dp))
+
+        if (budgets.isEmpty()) {
+            // Empty State Card
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(UI.colors.pure)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "No category budgets set yet",
+                        style = UI.typo.b2.style(
+                            fontWeight = FontWeight.SemiBold,
+                            color = UI.colors.pureInverse
+                        )
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Text(
+                        text = "Set monthly spending limits for Dining, Shopping, Fuel, etc. to prevent overspending.",
+                        style = UI.typo.c.style(
+                            color = UI.colors.gray,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(UI.colors.primary)
+                            .clickable { onManageBudgets() }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "+ Set Category Budgets",
+                            style = UI.typo.b2.style(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        )
+                    }
+                }
+            }
+        } else {
+            // Overall Total Progress (if > 1 budget)
+            if (budgets.size > 1 && totalLimit > 0) {
+                val totalPct = ((totalSpent / totalLimit) * 100).toFloat().coerceIn(0f, 999f)
+                val totalBarColor = when {
+                    totalPct < 70f -> Green
+                    totalPct <= 90f -> Orange
+                    else -> Red
+                }
+                val animatedTotalFraction by animateFloatAsState(
+                    targetValue = (totalSpent / totalLimit).toFloat().coerceIn(0f, 1f),
+                    animationSpec = tween(600),
+                    label = "totalBudgetFraction"
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(UI.colors.pure)
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Total Budget Health",
+                            style = UI.typo.b2.style(
+                                fontWeight = FontWeight.Bold,
+                                color = UI.colors.pureInverse
+                            )
+                        )
+                        Text(
+                            text = "$currency${String.format(Locale.US, "%.0f", totalSpent)} / $currency${String.format(Locale.US, "%.0f", totalLimit)} (${String.format(Locale.US, "%.0f%%", totalPct)})",
+                            style = UI.typo.c.style(
+                                fontWeight = FontWeight.Bold,
+                                color = totalBarColor
+                            )
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(UI.colors.medium)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = animatedTotalFraction)
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(totalBarColor)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(14.dp))
+            }
+
+            // List of Category Budgets
+            budgets.forEachIndexed { index, budget ->
+                val barColor = when {
+                    budget.percentage < 70f -> Green
+                    budget.percentage <= 90f -> Orange
+                    else -> Red
+                }
+                val animatedFraction by animateFloatAsState(
+                    targetValue = (budget.spentAmount / budget.limitAmount.coerceAtLeast(0.01)).toFloat().coerceIn(0f, 1f),
+                    animationSpec = tween(600),
+                    label = "budgetFraction_$index"
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            val catColor = budget.primaryCategoryColor?.let { Color(it) } ?: barColor
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(catColor.copy(alpha = 0.2f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                ItemIconM(
+                                    iconName = budget.primaryCategoryIcon,
+                                    tint = catColor,
+                                    defaultIcon = R.drawable.ic_custom_categories_m
+                                )
+                            }
+
+                            Spacer(Modifier.width(10.dp))
+
+                            Column {
+                                Text(
+                                    text = budget.name,
+                                    style = UI.typo.b2.style(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = UI.colors.pureInverse
+                                    )
+                                )
+
+                                val remainingText = if (budget.remainingAmount >= 0) {
+                                    "$currency${String.format(Locale.US, "%.0f", budget.remainingAmount)} left"
+                                } else {
+                                    "$currency${String.format(Locale.US, "%.0f", -budget.remainingAmount)} over budget!"
+                                }
+                                Text(
+                                    text = remainingText,
+                                    style = UI.typo.c.style(
+                                        fontWeight = FontWeight.Bold,
+                                        color = barColor
+                                    )
+                                )
+                            }
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "$currency${String.format(Locale.US, "%.0f", budget.spentAmount)} / $currency${String.format(Locale.US, "%.0f", budget.limitAmount)}",
+                                style = UI.typo.b2.style(
+                                    fontWeight = FontWeight.Bold,
+                                    color = UI.colors.pureInverse
+                                )
+                            )
+                            Text(
+                                text = String.format(Locale.US, "%.0f%%", budget.percentage),
+                                style = UI.typo.c.style(
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = barColor
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(6.dp))
+
+                    // Progress Bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(UI.colors.pure.copy(alpha = 0.5f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = animatedFraction)
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(barColor)
+                        )
+                    }
+
+                    if (index < budgets.lastIndex) {
+                        Spacer(Modifier.height(8.dp))
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // Manage Budgets Button
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(UI.colors.pure)
+                    .clickable { onManageBudgets() }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Manage All Budgets →",
+                    style = UI.typo.b2.style(
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.primary
+                    )
+                )
+            }
+        }
     }
 }
