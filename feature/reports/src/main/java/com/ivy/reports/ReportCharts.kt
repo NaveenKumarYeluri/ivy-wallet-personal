@@ -244,9 +244,11 @@ fun ActiveFilterCard(
                 )
                 Spacer(Modifier.height(2.dp))
                 val periodDesc = filter.period?.let { p ->
+                    val m = p.month
+                    val lastN = p.lastNRange
                     when {
-                        p.month != null -> "${p.month.name} ${p.year ?: ""}".trim()
-                        p.lastNRange != null -> "Last ${p.lastNRange.forDisplay()}"
+                        m != null -> "${m.name} ${p.year ?: ""}".trim()
+                        lastN != null -> "Last ${lastN.forDisplay()}"
                         p.fromToRange != null -> "Custom Date Range"
                         else -> "Custom Period"
                     }
