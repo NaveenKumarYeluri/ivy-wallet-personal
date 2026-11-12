@@ -76,6 +76,7 @@ import com.ivy.wallet.ui.theme.components.CircleButtonFilled
 import com.ivy.wallet.ui.theme.components.IvyCheckboxWithText
 import com.ivy.wallet.ui.theme.components.IvyOutlinedButton
 import com.ivy.wallet.ui.theme.components.IvyToolbar
+import com.ivy.wallet.ui.theme.findContrastTextColor
 import com.ivy.wallet.ui.theme.pureBlur
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -117,6 +118,8 @@ fun BoxWithConstraintsScope.ReportScreenContent(
     var quickDepositModalVisible by remember { mutableStateOf(false) }
     var selectedGoalForQuickAction by remember { mutableStateOf<SavingsGoal?>(null) }
     var isDepositMode by remember { mutableStateOf(true) }
+    var monthYearPickerVisible by remember { mutableStateOf(false) }
+    var yearPickerVisible by remember { mutableStateOf(false) }
 
     if (state.loading) {
         Box(
@@ -160,6 +163,7 @@ fun BoxWithConstraintsScope.ReportScreenContent(
         stickyHeader {
             Toolbar(
                 isTab = isTab,
+                hasActiveFilter = state.filter != null,
                 onExport = {
                     onEventHandler.invoke(ReportScreenEvent.OnExport(context = context))
                 },
@@ -176,17 +180,43 @@ fun BoxWithConstraintsScope.ReportScreenContent(
             )
         }
 
-        // 1. Period Switcher (Monthly, Yearly, All Time)
-        item {
-            ReportPeriodSelector(
-                periodType = state.periodType,
-                periodLabel = state.periodLabel.ifEmpty { "November 2026" },
-                canGoForward = state.canGoForward,
-                onSelectPeriodType = { onEventHandler.invoke(ReportScreenEvent.OnSelectPeriodType(it)) },
-                onPreviousPeriod = { onEventHandler.invoke(ReportScreenEvent.OnPreviousPeriod) },
-                onNextPeriod = { onEventHandler.invoke(ReportScreenEvent.OnNextPeriod) }
-            )
-            Spacer(Modifier.height(16.dp))
+        // 1. Period Switcher (Default) or Active Filter Card (Custom Filter)
+        if (state.filter == null) {
+            item {
+                ReportPeriodSelector(
+                    periodType = state.periodType,
+                    periodLabel = state.periodLabel.ifEmpty { "November 2026" },
+                    canGoForward = state.canGoForward,
+                    onSelectPeriodType = { onEventHandler.invoke(ReportScreenEvent.OnSelectPeriodType(it)) },
+                    onPreviousPeriod = { onEventHandler.invoke(ReportScreenEvent.OnPreviousPeriod) },
+                    onNextPeriod = { onEventHandler.invoke(ReportScreenEvent.OnNextPeriod) },
+                    onOpenPicker = {
+                        when (state.periodType) {
+                            ReportPeriodType.MONTHLY -> monthYearPickerVisible = true
+                            ReportPeriodType.YEARLY -> yearPickerVisible = true
+                            ReportPeriodType.ALL_TIME -> {}
+                        }
+                    }
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+        } else {
+            item {
+                ActiveFilterCard(
+                    filter = state.filter,
+                    onEditFilter = {
+                        onEventHandler.invoke(
+                            ReportScreenEvent.OnFilterOverlayVisible(
+                                filterOverlayVisible = true
+                            )
+                        )
+                    },
+                    onClearFilter = {
+                        onEventHandler.invoke(ReportScreenEvent.OnFilter(null))
+                    }
+                )
+                Spacer(Modifier.height(16.dp))
+            }
         }
 
         // 2. Executive Summary
@@ -293,46 +323,50 @@ fun BoxWithConstraintsScope.ReportScreenContent(
             }
         }
 
-        // 7. Category Budgets & Spending Limits
-        item {
-            CategoryBudgetsSection(
-                budgets = state.categoryBudgets,
-                totalLimit = state.totalBudgetLimit,
-                totalSpent = state.totalBudgetSpent,
-                totalRemaining = state.totalBudgetRemaining,
-                currency = state.baseCurrency,
-                onManageBudgets = {
-                    nav.navigateTo(BudgetScreen)
-                }
-            )
-            Spacer(Modifier.height(16.dp))
+        // 7. Category Budgets & Spending Limits (Default Reports only)
+        if (state.filter == null) {
+            item {
+                CategoryBudgetsSection(
+                    budgets = state.categoryBudgets,
+                    totalLimit = state.totalBudgetLimit,
+                    totalSpent = state.totalBudgetSpent,
+                    totalRemaining = state.totalBudgetRemaining,
+                    currency = state.baseCurrency,
+                    onManageBudgets = {
+                        nav.navigateTo(BudgetScreen)
+                    }
+                )
+                Spacer(Modifier.height(16.dp))
+            }
         }
 
-        // 8. Savings Goals & Targets ("Piggy Banks")
-        item {
-            SavingsGoalsSection(
-                goals = state.savingsGoals,
-                currency = state.baseCurrency,
-                onAddGoal = {
-                    selectedGoalForEdit = null
-                    goalModalVisible = true
-                },
-                onEditGoal = { goal ->
-                    selectedGoalForEdit = goal
-                    goalModalVisible = true
-                },
-                onDeposit = { goal ->
-                    selectedGoalForQuickAction = goal
-                    isDepositMode = true
-                    quickDepositModalVisible = true
-                },
-                onWithdraw = { goal ->
-                    selectedGoalForQuickAction = goal
-                    isDepositMode = false
-                    quickDepositModalVisible = true
-                }
-            )
-            Spacer(Modifier.height(16.dp))
+        // 8. Savings Goals & Targets ("Piggy Banks") (Default Reports only)
+        if (state.filter == null) {
+            item {
+                SavingsGoalsSection(
+                    goals = state.savingsGoals,
+                    currency = state.baseCurrency,
+                    onAddGoal = {
+                        selectedGoalForEdit = null
+                        goalModalVisible = true
+                    },
+                    onEditGoal = { goal ->
+                        selectedGoalForEdit = goal
+                        goalModalVisible = true
+                    },
+                    onDeposit = { goal ->
+                        selectedGoalForQuickAction = goal
+                        isDepositMode = true
+                        quickDepositModalVisible = true
+                    },
+                    onWithdraw = { goal ->
+                        selectedGoalForQuickAction = goal
+                        isDepositMode = false
+                        quickDepositModalVisible = true
+                    }
+                )
+                Spacer(Modifier.height(16.dp))
+            }
         }
 
         // 9. Pie Chart Distribution
@@ -348,17 +382,19 @@ fun BoxWithConstraintsScope.ReportScreenContent(
             Spacer(Modifier.height(16.dp))
         }
 
-        // 7. Future Prediction & Runway
-        item {
-            FuturePredictionCard(
-                dailyBurnRate = state.dailyBurnRate,
-                projectedPeriodExpense = state.projectedPeriodExpense,
-                projectedPeriodSavings = state.projectedPeriodSavings,
-                financialRunwayMonths = state.financialRunwayMonths,
-                predictionStatus = state.predictionStatus,
-                currency = state.baseCurrency
-            )
-            Spacer(Modifier.height(16.dp))
+        // 10. Future Prediction & Runway (Default Reports only)
+        if (state.filter == null) {
+            item {
+                FuturePredictionCard(
+                    dailyBurnRate = state.dailyBurnRate,
+                    projectedPeriodExpense = state.projectedPeriodExpense,
+                    projectedPeriodSavings = state.projectedPeriodSavings,
+                    financialRunwayMonths = state.financialRunwayMonths,
+                    predictionStatus = state.predictionStatus,
+                    currency = state.baseCurrency
+                )
+                Spacer(Modifier.height(16.dp))
+            }
         }
 
         // 8. Balance Trend Sparkline / Area Graph
@@ -488,11 +524,30 @@ fun BoxWithConstraintsScope.ReportScreenContent(
             }
         }
     )
+
+    ReportMonthYearPickerModal(
+        visible = monthYearPickerVisible,
+        initialYearMonth = state.selectedYearMonth,
+        dismiss = { monthYearPickerVisible = false },
+        onSelectYearMonth = {
+            onEventHandler.invoke(ReportScreenEvent.OnSelectYearMonth(it))
+        }
+    )
+
+    ReportYearPickerModal(
+        visible = yearPickerVisible,
+        initialYear = state.selectedYear,
+        dismiss = { yearPickerVisible = false },
+        onSelectYear = {
+            onEventHandler.invoke(ReportScreenEvent.OnSelectYear(it))
+        }
+    )
 }
 
 @Composable
 private fun Toolbar(
     isTab: Boolean = false,
+    hasActiveFilter: Boolean = false,
     onExport: () -> Unit,
     onShareSummary: () -> Unit,
     onFilter: () -> Unit
@@ -538,7 +593,9 @@ private fun Toolbar(
             Spacer(Modifier.width(10.dp))
 
             CircleButtonFilled(
-                icon = R.drawable.ic_filter_xs
+                icon = R.drawable.ic_filter_xs,
+                backgroundColor = if (hasActiveFilter) UI.colors.primary else UI.colors.medium,
+                tint = if (hasActiveFilter) findContrastTextColor(UI.colors.primary) else UI.colors.pureInverse
             ) {
                 onFilter()
             }
@@ -575,7 +632,9 @@ private fun Toolbar(
             Spacer(Modifier.width(12.dp))
 
             CircleButtonFilled(
-                icon = R.drawable.ic_filter_xs
+                icon = R.drawable.ic_filter_xs,
+                backgroundColor = if (hasActiveFilter) UI.colors.primary else UI.colors.medium,
+                tint = if (hasActiveFilter) findContrastTextColor(UI.colors.primary) else UI.colors.pureInverse
             ) {
                 onFilter()
             }

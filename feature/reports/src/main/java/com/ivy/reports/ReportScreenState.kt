@@ -8,6 +8,8 @@ import com.ivy.data.repository.SavingsGoal
 import com.ivy.legacy.datamodel.Account
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import java.time.Year
+import java.time.YearMonth
 import java.util.UUID
 
 enum class ReportPeriodType {
@@ -95,6 +97,8 @@ data class ReportScreenState(
     val periodType: ReportPeriodType = ReportPeriodType.MONTHLY,
     val periodLabel: String = "",
     val canGoForward: Boolean = false,
+    val selectedYearMonth: YearMonth = YearMonth.now(),
+    val selectedYear: Int = Year.now().value,
     val intervalGraphItems: ImmutableList<IntervalGraphItem> = persistentListOf(),
     val pieChartMode: TransactionType = TransactionType.EXPENSE,
     val pieChartSlices: ImmutableList<CategorySpendingItem> = persistentListOf(),

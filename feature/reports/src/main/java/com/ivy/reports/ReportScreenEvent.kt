@@ -4,6 +4,7 @@ import android.content.Context
 import com.ivy.base.model.TransactionType
 import com.ivy.data.model.Transaction
 import com.ivy.data.repository.SavingsGoal
+import java.time.YearMonth
 
 sealed class ReportScreenEvent {
     data class OnFilter(val filter: ReportFilter?) : ReportScreenEvent()
@@ -29,6 +30,8 @@ sealed class ReportScreenEvent {
     data class OnSelectPeriodType(val periodType: ReportPeriodType) : ReportScreenEvent()
     data object OnPreviousPeriod : ReportScreenEvent()
     data object OnNextPeriod : ReportScreenEvent()
+    data class OnSelectYearMonth(val yearMonth: YearMonth) : ReportScreenEvent()
+    data class OnSelectYear(val year: Int) : ReportScreenEvent()
     data class OnTogglePieChartMode(val type: TransactionType) : ReportScreenEvent()
     data class OnToggleCategoryViewMode(val type: TransactionType) : ReportScreenEvent()
     data class OnSelectHeatmapDay(val day: DailySpendingHeatmapDay?) : ReportScreenEvent()

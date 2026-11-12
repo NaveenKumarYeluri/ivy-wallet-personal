@@ -219,6 +219,8 @@ class ReportViewModel @Inject constructor(
             periodType = periodType,
             periodLabel = periodLabel,
             canGoForward = canGoForward,
+            selectedYearMonth = selectedYearMonth,
+            selectedYear = selectedYear,
             intervalGraphItems = intervalGraphItems,
             pieChartMode = pieChartMode,
             pieChartSlices = currentPieSlices,
@@ -267,6 +269,8 @@ class ReportViewModel @Inject constructor(
                 is ReportScreenEvent.OnSelectPeriodType -> selectPeriodType(event.periodType)
                 ReportScreenEvent.OnPreviousPeriod -> previousPeriod()
                 ReportScreenEvent.OnNextPeriod -> nextPeriod()
+                is ReportScreenEvent.OnSelectYearMonth -> selectYearMonth(event.yearMonth)
+                is ReportScreenEvent.OnSelectYear -> selectYear(event.year)
                 is ReportScreenEvent.OnTogglePieChartMode -> { pieChartMode = event.type }
                 is ReportScreenEvent.OnToggleCategoryViewMode -> { categoryViewMode = event.type }
                 is ReportScreenEvent.OnSelectHeatmapDay -> {
@@ -337,6 +341,22 @@ class ReportViewModel @Inject constructor(
             ReportPeriodType.YEARLY -> if (canGoForward) selectedYear += 1
             ReportPeriodType.ALL_TIME -> {}
         }
+        viewModelScope.launch(Dispatchers.IO) {
+            recomputeDefaultReports()
+        }
+    }
+
+    private fun selectYearMonth(yearMonth: YearMonth) {
+        selectedYearMonth = yearMonth
+        selectedYear = yearMonth.year
+        viewModelScope.launch(Dispatchers.IO) {
+            recomputeDefaultReports()
+        }
+    }
+
+    private fun selectYear(year: Int) {
+        selectedYear = year
+        selectedYearMonth = YearMonth.of(year, selectedYearMonth.month)
         viewModelScope.launch(Dispatchers.IO) {
             recomputeDefaultReports()
         }
@@ -683,22 +703,8 @@ class ReportViewModel @Inject constructor(
     private suspend fun setFilter(reportFilter: ReportFilter?) {
         scopedIOThread { scope ->
             if (reportFilter == null) {
-                setReportValues(
-                    income = 0.00,
-                    expense = 0.00,
-                    upcomingIncomeExpenseTransferPair = IncomeExpenseTransferPair.zero(),
-                    overDueIncomeExpenseTransferPair = IncomeExpenseTransferPair.zero(),
-                    history = persistentListOf(),
-                    upcomingTransactions = persistentListOf(),
-                    overdueTransactions = persistentListOf(),
-                    accounts = accountsAct(Unit),
-                    reportFilter = filter,
-                    accountIdFilters = persistentListOf(),
-                    transactions = persistentListOf(),
-                    balanceValue = 0.00
-                )
-                topSpendingCategories = persistentListOf()
-                savingsRate = 0f
+                filter = null
+                recomputeDefaultReports()
                 return@scopedIOThread
             }
 

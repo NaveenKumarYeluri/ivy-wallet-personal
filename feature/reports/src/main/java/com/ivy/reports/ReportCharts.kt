@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,6 +61,7 @@ fun ReportPeriodSelector(
     onSelectPeriodType: (ReportPeriodType) -> Unit,
     onPreviousPeriod: () -> Unit,
     onNextPeriod: () -> Unit,
+    onOpenPicker: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -136,14 +138,41 @@ fun ReportPeriodSelector(
                 Spacer(Modifier.size(36.dp))
             }
 
-            Text(
-                text = periodLabel,
-                style = UI.typo.b1.style(
-                    fontWeight = FontWeight.Bold,
-                    color = UI.colors.pureInverse
-                ),
-                textAlign = TextAlign.Center
-            )
+            if (periodType != ReportPeriodType.ALL_TIME) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onOpenPicker() }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = periodLabel,
+                        style = UI.typo.b1.style(
+                            fontWeight = FontWeight.Bold,
+                            color = UI.colors.pureInverse
+                        ),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    IvyIcon(
+                        modifier = Modifier.size(16.dp),
+                        icon = R.drawable.ic_calendar,
+                        tint = UI.colors.primary,
+                        contentDescription = "Pick date"
+                    )
+                }
+            } else {
+                Text(
+                    text = periodLabel,
+                    style = UI.typo.b1.style(
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.pureInverse
+                    ),
+                    textAlign = TextAlign.Center
+                )
+            }
 
             if (periodType != ReportPeriodType.ALL_TIME) {
                 Box(
@@ -165,6 +194,108 @@ fun ReportPeriodSelector(
                 }
             } else {
                 Spacer(Modifier.size(36.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun ActiveFilterCard(
+    filter: ReportFilter,
+    onEditFilter: () -> Unit,
+    onClearFilter: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(UI.colors.medium)
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(UI.colors.primary.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                IvyIcon(
+                    icon = R.drawable.ic_filter_xs,
+                    tint = UI.colors.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Custom Filter Active",
+                    style = UI.typo.b1.style(
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.pureInverse
+                    )
+                )
+                Spacer(Modifier.height(2.dp))
+                val periodDesc = filter.period?.let { p ->
+                    when {
+                        p.month != null -> "${p.month.name} ${p.year ?: ""}".trim()
+                        p.lastNRange != null -> "Last ${p.lastNRange.forDisplay()}"
+                        p.fromToRange != null -> "Custom Date Range"
+                        else -> "Custom Period"
+                    }
+                } ?: "Filtered Transactions"
+                Text(
+                    text = periodDesc,
+                    style = UI.typo.c.style(
+                        color = UI.colors.gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
+
+            // Edit button
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(UI.colors.pure)
+                    .clickable { onEditFilter() }
+                    .padding(horizontal = 12.dp, vertical = 7.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.edit),
+                    style = UI.typo.b2.style(
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.primary
+                    )
+                )
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            // Clear button
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(UI.colors.pure)
+                    .clickable { onClearFilter() }
+                    .padding(horizontal = 12.dp, vertical = 7.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.clean_filter),
+                    style = UI.typo.b2.style(
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE53935)
+                    )
+                )
             }
         }
     }
