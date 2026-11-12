@@ -246,10 +246,11 @@ fun ActiveFilterCard(
                 val periodDesc = filter.period?.let { p ->
                     val m = p.month
                     val lastN = p.lastNRange
+                    val fromTo = p.fromToRange
                     when {
                         m != null -> "${m.name} ${p.year ?: ""}".trim()
                         lastN != null -> "Last ${lastN.forDisplay()}"
-                        p.fromToRange != null -> "Custom Date Range"
+                        fromTo != null -> if (fromTo.from == null) "All Time" else "Custom Date Range"
                         else -> "Custom Period"
                     }
                 } ?: "Filtered Transactions"

@@ -709,7 +709,7 @@ class ReportViewModel @Inject constructor(
             }
 
             if (!reportFilter.validate()) return@scopedIOThread
-            val tempAccounts = reportFilter.accounts
+            val tempAccounts = if (reportFilter.accounts.isNotEmpty()) reportFilter.accounts else this.accounts
             val baseCurrency = baseCurrency
             loading = true
 
@@ -803,11 +803,12 @@ class ReportViewModel @Inject constructor(
                 balanceValue = tempBalance
             )
 
+            val categoryMap = categories.associateBy { it.id.value }
+
             val expenseTrns = transactionsList.filter {
                 with(transactionMapper) { it.getTransactionType() == TransactionType.EXPENSE }
             }
             val totalExpenseVal = if (tempExpenses > 0.0) tempExpenses else 1.0
-            val categoryMap = categories.associateBy { it.id.value }
 
             topSpendingCategories = expenseTrns
                 .groupBy { it.category?.value }
@@ -815,6 +816,29 @@ class ReportViewModel @Inject constructor(
                     val cat = catId?.let { categoryMap[it] } ?: unSpecifiedCategory
                     val sum = trns.sumOf { (it as? Expense)?.value?.amount?.value ?: 0.0 }
                     val pct = ((sum / totalExpenseVal) * 100).toFloat().coerceIn(0f, 100f)
+                    CategorySpendingItem(
+                        categoryName = cat.name.value,
+                        categoryColor = cat.color.value,
+                        categoryIcon = cat.icon?.id,
+                        totalAmount = sum,
+                        percentage = pct,
+                        transactionCount = trns.size
+                    )
+                }
+                .sortedByDescending { it.totalAmount }
+                .toImmutableList()
+
+            val incomeTrns = transactionsList.filter {
+                with(transactionMapper) { it.getTransactionType() == TransactionType.INCOME }
+            }
+            val totalIncomeVal = if (tempIncome > 0.0) tempIncome else 1.0
+
+            topIncomeCategories = incomeTrns
+                .groupBy { it.category?.value }
+                .map { (catId, trns) ->
+                    val cat = catId?.let { categoryMap[it] } ?: unSpecifiedCategory
+                    val sum = trns.sumOf { (it as? Income)?.value?.amount?.value ?: 0.0 }
+                    val pct = ((sum / totalIncomeVal) * 100).toFloat().coerceIn(0f, 100f)
                     CategorySpendingItem(
                         categoryName = cat.name.value,
                         categoryColor = cat.color.value,
@@ -913,39 +937,47 @@ class ReportViewModel @Inject constructor(
         return transactions
             .filter { !excludeableByTagTransactionsIds.contains(it.id) }
             .filter {
-                with(transactionMapper) {
-                    filter.trnTypes.contains(it.getTransactionType())
+                if (filter.trnTypes.isEmpty()) {
+                    true
+                } else {
+                    with(transactionMapper) {
+                        filter.trnTypes.contains(it.getTransactionType())
+                    }
                 }
             }
             .filter {
                 // Filter by Time Period
-
-                filterRange ?: return@filter false
-
-                filterRange.includes(it.time)
+                filterRange?.includes(it.time) ?: true
             }
             .filter { trn ->
                 // Filter by Accounts
-                when (trn) {
-                    is Transfer -> {
-                        filterAccountIds.contains(trn.fromAccount.value) || // Transfers Out
-                                (filterAccountIds.contains(trn.toAccount.value)) // Transfers In
-                    }
+                if (filterAccountIds.isEmpty()) {
+                    true
+                } else {
+                    when (trn) {
+                        is Transfer -> {
+                            filterAccountIds.contains(trn.fromAccount.value) || // Transfers Out
+                                    (filterAccountIds.contains(trn.toAccount.value)) // Transfers In
+                        }
 
-                    is Expense -> {
-                        filterAccountIds.contains(trn.account.value)
-                    }
+                        is Expense -> {
+                            filterAccountIds.contains(trn.account.value)
+                        }
 
-                    is Income -> {
-                        filterAccountIds.contains(trn.account.value)
+                        is Income -> {
+                            filterAccountIds.contains(trn.account.value)
+                        }
                     }
                 }
             }
             .filter { trn ->
                 // Filter by Categories
-
-                filterCategoryIds.contains(trn.category) || with(transactionMapper) {
-                    (trn.getTransactionType() == TransactionType.TRANSFER)
+                if (filterCategoryIds.isEmpty()) {
+                    true
+                } else {
+                    filterCategoryIds.contains(trn.category) || with(transactionMapper) {
+                        (trn.getTransactionType() == TransactionType.TRANSFER)
+                    }
                 }
             }
             .filterSuspend {

@@ -554,8 +554,7 @@ private fun TypeFilter(
 ) {
     FilterTitleText(
         text = stringResource(R.string.by_type),
-        active = filter != null && filter.trnTypes.isNotEmpty(),
-        inactiveColor = Red
+        active = filter != null && filter.trnTypes.isNotEmpty()
     )
 
     Spacer(Modifier.height(12.dp))
@@ -637,8 +636,7 @@ private fun PeriodFilter(
 ) {
     FilterTitleText(
         text = stringResource(R.string.time_period),
-        active = filter?.period != null,
-        inactiveColor = Red
+        active = filter?.period != null
     )
 
     Spacer(Modifier.height(16.dp))
@@ -818,8 +816,7 @@ private fun ListFilterTitle(
     ) {
         FilterTitleText(
             text = text,
-            active = active,
-            inactiveColor = Red
+            active = active
         )
 
         Spacer(Modifier.weight(1f))

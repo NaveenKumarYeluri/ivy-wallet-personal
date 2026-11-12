@@ -41,14 +41,6 @@ data class ReportFilter(
     }
 
     fun validate(): Boolean {
-        if (trnTypes.isEmpty()) return false
-
-        if (period == null) return false
-
-        if (accounts.isEmpty()) return false
-
-        if (categories.isEmpty()) return false
-
         if (minAmount != null && maxAmount != null) {
             if (minAmount > maxAmount) return false
             if (maxAmount < minAmount) return false
