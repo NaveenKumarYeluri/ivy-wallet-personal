@@ -270,7 +270,7 @@ class BackupDataUseCase @Inject constructor(
 
         var modifiedString = jsonString
         replacementPairs.forEach {
-            modifiedString = modifiedString!!.replace(it.first.toString(), it.second.toString())
+            modifiedString = modifiedString!!.replace("\"${it.first}\"", "\"${it.second}\"")
         }
 
         return modifiedString

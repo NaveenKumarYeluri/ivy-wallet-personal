@@ -424,27 +424,29 @@ class RootActivity : AppCompatActivity(), RootScreen {
     }
 
     override fun shareCSVFile(fileUri: Uri) {
-        val intent = Intent.createChooser(
-            Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_STREAM, fileUri)
-                type = "text/csv"
-            },
-            null
-        )
-        startActivity(intent)
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, fileUri)
+            type = "text/csv"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        val chooser = Intent.createChooser(shareIntent, null).apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(chooser)
     }
 
     override fun shareZipFile(fileUri: Uri) {
-        val intent = Intent.createChooser(
-            Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_STREAM, fileUri)
-                type = "application/zip"
-            },
-            null
-        )
-        startActivity(intent)
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, fileUri)
+            type = "application/zip"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        val chooser = Intent.createChooser(shareIntent, null).apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(chooser)
     }
 
     override val isDebug: Boolean

@@ -74,6 +74,7 @@ fun unzip(fileInputStream: FileInputStream, location: File) {
                 it
             }
         }
+        val canonicalDestDir = location.canonicalPath
 
         var zipEntry: ZipEntry?
         var unzipFile: File
@@ -81,6 +82,11 @@ fun unzip(fileInputStream: FileInputStream, location: File) {
 
         while (zipInputStream.nextEntry.also { zipEntry = it } != null) {
             unzipFile = File(locationPath + zipEntry!!.name)
+            val canonicalEntryPath = unzipFile.canonicalPath
+            if (!canonicalEntryPath.startsWith(canonicalDestDir + File.separator) && canonicalEntryPath != canonicalDestDir) {
+                throw SecurityException("Zip entry is outside target extraction directory: ${zipEntry!!.name}")
+            }
+
             if (zipEntry!!.isDirectory) {
                 if (!unzipFile.isDirectory) unzipFile.mkdirs()
             } else {

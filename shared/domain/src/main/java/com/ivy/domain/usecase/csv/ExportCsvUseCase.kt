@@ -111,11 +111,22 @@ class ExportCsvUseCase @Inject constructor(
         val columns = mutableListOf<String>()
         val rowScope = object : CsvRowScope {
             override fun csvAppend(value: String?) {
-                columns.add(value?.escapeCsvString() ?: "")
+                columns.add(value?.sanitizeFormula()?.escapeCsvString() ?: "")
             }
         }
         rowScope.build()
         return columns.joinToString(separator = CSV_SEPARATOR)
+    }
+
+    private fun String.sanitizeFormula(): String {
+        val trimmed = this.trimStart()
+        return if (trimmed.startsWith("=") || trimmed.startsWith("@") ||
+            ((trimmed.startsWith("+") || trimmed.startsWith("-")) && trimmed.drop(1).toDoubleOrNull() == null)
+        ) {
+            "'$this"
+        } else {
+            this
+        }
     }
 
     private fun String.escapeCsvString(): String = try {

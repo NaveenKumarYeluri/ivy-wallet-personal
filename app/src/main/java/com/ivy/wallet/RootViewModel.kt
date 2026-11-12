@@ -176,9 +176,11 @@ class RootViewModel @Inject constructor(
 
     private val userInactiveTime = AtomicLong(0)
     private var userInactiveJob: Job? = null
+    private var backgroundTimestamp: Long = 0L
 
     @Suppress("MagicNumber")
     fun startUserInactiveTimeCounter() {
+        backgroundTimestamp = android.os.SystemClock.elapsedRealtime()
         if (userInactiveJob != null && userInactiveJob!!.isActive) return
 
         userInactiveJob = viewModelScope.launch(Dispatchers.IO) {
@@ -194,15 +196,26 @@ class RootViewModel @Inject constructor(
     }
 
     fun checkUserInactiveTimeStatus() {
-        if (userInactiveTime.get() < USER_INACTIVITY_TIME_LIMIT) {
+        val elapsedSeconds = if (backgroundTimestamp > 0L) {
+            (android.os.SystemClock.elapsedRealtime() - backgroundTimestamp) / 1000L
+        } else {
+            userInactiveTime.get()
+        }
+
+        if (elapsedSeconds >= USER_INACTIVITY_TIME_LIMIT) {
+            if (!isAppLocked()) {
+                lockApp()
+            }
+        } else {
             if (userInactiveJob != null && userInactiveJob?.isCancelled == false) {
                 userInactiveJob?.cancel()
-                resetUserInactiveTimer()
             }
         }
+        resetUserInactiveTimer()
     }
 
     fun resetUserInactiveTimer() {
         userInactiveTime.set(0)
+        backgroundTimestamp = 0L
     }
 }

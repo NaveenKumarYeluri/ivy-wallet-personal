@@ -87,7 +87,11 @@ object CryptoVault {
     private fun deriveKey(password: CharArray, salt: ByteArray): SecretKeySpec {
         val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
         val spec = PBEKeySpec(password, salt, PBKDF2_ITERATIONS, KEY_LENGTH_BITS)
-        val secretKey = factory.generateSecret(spec)
-        return SecretKeySpec(secretKey.encoded, "AES")
+        return try {
+            val secretKey = factory.generateSecret(spec)
+            SecretKeySpec(secretKey.encoded, "AES")
+        } finally {
+            spec.clearPassword()
+        }
     }
 }

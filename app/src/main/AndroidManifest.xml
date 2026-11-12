@@ -11,8 +11,6 @@
         android:requestLegacyExternalStorage="true" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!--  Show activity over the lockscreen  -->
-    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
@@ -25,7 +23,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true"
+        android:usesCleartextTraffic="false"
         tools:ignore="LockedOrientationActivity">
 
         <activity
